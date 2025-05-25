@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +32,7 @@ const MOCK_USERS = [
   {
     id: '2',
     name: 'Sales User',
-    email: 'sales@example.com',
+    email: 'jonny@brestelecom.com.br',
     password: 'sales123',
     phone: '+5511666666666',
     role: UserRole.SALESPERSON,
@@ -68,7 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const foundUser = MOCK_USERS.find(
@@ -79,7 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid email or password');
       }
       
-      // Remove password from user object before storing
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword as User);
       localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
@@ -89,6 +89,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const foundUser = MOCK_USERS.find(u => u.email === user.email);
+    if (!foundUser || foundUser.password !== currentPassword) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // In a real app, this would make an API call to update the password
+    foundUser.password = newPassword;
+    return Promise.resolve();
   };
 
   const logout = (): void => {
@@ -109,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isAuthenticated: !!user,
     hasPermission,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
