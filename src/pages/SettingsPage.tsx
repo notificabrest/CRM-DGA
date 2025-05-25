@@ -120,7 +120,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose, title, u
 
 const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
-  const { pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus, addUser, updateUser, deleteUser, users } = useData();
+  const { pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus, addUser, updateUser, deleteUser, users, branches } = useData();
   const { hasPermission } = useAuth();
   
   const [selectedTheme, setSelectedTheme] = useState(currentTheme.name);
