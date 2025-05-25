@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Upload, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Save, RefreshCw, Upload, Plus, Edit2, Trash2, Key, Lock } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
@@ -35,66 +35,71 @@ const PasswordChangeForm: React.FC<{ user: User; onClose: () => void }> = ({ use
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Current Password
-        </label>
-        <input
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-      </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-lg font-medium mb-4">Change Password</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Current Password
+            </label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          New Password
-        </label>
-        <input
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Confirm New Password
-        </label>
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+          </div>
 
-      {error && (
-        <div className="text-red-600 text-sm">{error}</div>
-      )}
+          {error && (
+            <div className="text-red-600 text-sm">{error}</div>
+          )}
 
-      <div className="flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-        >
-          Change Password
-        </button>
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+            >
+              Change Password
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 };
 
@@ -159,6 +164,9 @@ const SettingsPage: React.FC = () => {
     groupSearchFilter: '(objectClass=group)',
     groupMemberAttribute: 'member',
   });
+
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [selectedUserForPasswordReset, setSelectedUserForPasswordReset] = useState<User | null>(null);
 
   useEffect(() => {
     setHeaderTitle(currentTheme.headerName || 'CRM-DGA');
@@ -336,6 +344,15 @@ const SettingsPage: React.FC = () => {
   const handleDeleteUser = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       deleteUser(userId);
+    }
+  };
+
+  const handlePasswordReset = async (user: User) => {
+    try {
+      await resetUserPassword(user.id);
+      alert(`Password reset successfully to ${user.role.toLowerCase()}123`);
+    } catch (err) {
+      alert('Failed to reset password');
     }
   };
 
@@ -706,40 +723,52 @@ const SettingsPage: React.FC = () => {
 
       {activeTab === 'users' && (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-medium mb-4">Users & Permissions</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-medium">Users & Permissions</h2>
+            <button
+              onClick={() => setShowPasswordChange(true)}
+              className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+            >
+              <Key size={18} className="mr-2" />
+              Change My Password
+            </button>
+          </div>
           
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
+                Name*
               </label>
               <input
                 type="text"
                 value={userForm.name}
                 onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter user name"
               />
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Email*
               </label>
               <input
                 type="email"
                 value={userForm.email}
                 onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter email"
               />
             </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
+                Role*
               </label>
               <select
                 value={userForm.role}
                 onChange={(e) => setUserForm({ ...userForm, role: e.target.value as UserRole })}
+                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {Object.values(UserRole).map(role => (
@@ -747,8 +776,49 @@ const SettingsPage: React.FC = () => {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status*
+              </label>
+              <select
+                value={userForm.status}
+                onChange={(e) => setUserForm({ ...userForm, status: e.target.value as UserStatus })}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                {Object.values(UserStatus).map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Assigned Branches*
+              </label>
+              <select
+                multiple
+                value={userForm.branchIds}
+                onChange={(e) => setUserForm({
+                  ...userForm,
+                  branchIds: Array.from(e.target.selectedOptions, option => option.value)
+                })}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
+              >
+                {branches.map(branch =>
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                )}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Hold Ctrl/Cmd to select multiple branches
+              </p>
+            </div>
           </div>
-          
+
           <div className="mb-6">
             <button
               onClick={editingUser ? handleUpdateUser : handleAddUser}
@@ -757,7 +827,7 @@ const SettingsPage: React.FC = () => {
               {editingUser ? 'Update User' : 'Add User'}
             </button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -775,6 +845,9 @@ const SettingsPage: React.FC = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Branches
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -785,7 +858,11 @@ const SettingsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
-                          {user.name.substring(0, 2).toUpperCase()}
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full" />
+                          ) : (
+                            user.name.substring(0, 2).toUpperCase()
+                          )}
                         </div>
                         <span className="ml-2 text-sm text-gray-900">{user.name}</span>
                       </div>
@@ -816,25 +893,40 @@ const SettingsPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.branchIds.map(branchId => {
+                        const branch = branches.find(b => b.id === branchId);
+                        return branch ? branch.name : '';
+                      }).join(', ')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                       <button
                         onClick={() => {
                           setEditingUser(user);
                           setUserForm({
                             name: user.name,
                             email: user.email,
-                            phone: user.phone,
+                            phone: user.phone || '',
                             role: user.role,
                             status: user.status,
                             branchIds: user.branchIds
                           });
                         }}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Edit"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
+                        onClick={() => handlePasswordReset(user)}
+                        className="text-orange-600 hover:text-orange-900"
+                        title="Reset Password"
+                      >
+                        <Lock size={16} />
+                      </button>
+                      <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="text-red-600 hover:text-red-900"
+                        title="Delete"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -844,6 +936,13 @@ const SettingsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {showPasswordChange && (
+            <PasswordChangeForm
+              user={user!}
+              onClose={() => setShowPasswordChange(false)}
+            />
+          )}
         </div>
       )}
 
