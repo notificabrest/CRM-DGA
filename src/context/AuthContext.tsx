@@ -9,8 +9,6 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  resetUserPassword: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,10 +27,25 @@ const MOCK_USERS = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-  // ... (other mock users)
+  {
+    id: '2',
+    name: 'Sales User',
+    email: 'contato@brestelecom.com.br',
+    password: 'sales123',
+    phone: '+5511666666666',
+    role: UserRole.SALESPERSON,
+    status: 'ACTIVE',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 ];
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const foundUser = MOCK_USERS.find(
-        u => u.email === email && u.password === password
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
       
       if (!foundUser) {
@@ -86,30 +99,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return requiredRoles.includes(user.role);
   };
 
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
-    if (!user) throw new Error('No user logged in');
-
-    const mockUser = MOCK_USERS.find(u => u.id === user.id);
-    if (!mockUser || mockUser.password !== currentPassword) {
-      throw new Error('Current password is incorrect');
-    }
-
-    mockUser.password = newPassword;
-  };
-
-  const resetUserPassword = async (userId: string): Promise<void> => {
-    if (!user || user.role !== UserRole.ADMIN) {
-      throw new Error('Unauthorized');
-    }
-
-    const targetUser = MOCK_USERS.find(u => u.id === userId);
-    if (!targetUser) {
-      throw new Error('User not found');
-    }
-
-    targetUser.password = `${targetUser.role.toLowerCase()}123`;
-  };
-
   const value = {
     user,
     loading,
@@ -118,8 +107,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logout,
     isAuthenticated: !!user,
     hasPermission,
-    changePassword,
-    resetUserPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
