@@ -9,6 +9,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  resetUserPassword: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,7 +21,7 @@ const MOCK_USERS = [
     id: '1',
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'admin123', // In a real app, this would be hashed
+    password: 'admin123',
     phone: '+5511999999999',
     role: UserRole.ADMIN,
     status: 'ACTIVE',
@@ -75,7 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for saved user in localStorage
     const savedUser = localStorage.getItem('crm-user');
     if (savedUser) {
       try {
@@ -93,10 +94,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Find user with matching email and password
       const foundUser = MOCK_USERS.find(
         u => u.email === email && u.password === password
       );
@@ -105,7 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid email or password');
       }
       
-      // Remove password before storing user
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword as User);
       localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
@@ -126,6 +124,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return requiredRoles.includes(user.role);
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user) throw new Error('No user logged in');
+
+    // In a real app, this would make an API call to verify the current password
+    // and update to the new password
+    const mockUser = MOCK_USERS.find(u => u.id === user.id);
+    if (!mockUser || mockUser.password !== currentPassword) {
+      throw new Error('Current password is incorrect');
+    }
+
+    mockUser.password = newPassword;
+  };
+
+  const resetUserPassword = async (userId: string): Promise<void> => {
+    if (!user || user.role !== UserRole.ADMIN) {
+      throw new Error('Unauthorized');
+    }
+
+    const targetUser = MOCK_USERS.find(u => u.id === userId);
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
+
+    // Reset to default password based on role
+    targetUser.password = `${targetUser.role.toLowerCase()}123`;
+  };
+
   const value = {
     user,
     loading,
@@ -134,6 +159,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isAuthenticated: !!user,
     hasPermission,
+    changePassword,
+    resetUserPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

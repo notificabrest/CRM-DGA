@@ -3,7 +3,100 @@ import { Save, RefreshCw, Upload, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { PipelineStatus, UserRole, UserStatus } from '../types';
+import { PipelineStatus, UserRole, UserStatus, User } from '../types';
+
+const PasswordChangeForm: React.FC<{ user: User; onClose: () => void }> = ({ user, onClose }) => {
+  const { updateUser } = useData();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      await updateUser(user.id, { password: newPassword });
+      onClose();
+    } catch (err) {
+      setError('Failed to update password');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Current Password
+        </label>
+        <input
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          New Password
+        </label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Confirm New Password
+        </label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+      </div>
+
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
+      )}
+
+      <div className="flex justify-end space-x-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+        >
+          Change Password
+        </button>
+      </div>
+    </form>
+  );
+};
 
 const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
@@ -781,7 +874,6 @@ const SettingsPage: React.FC = () => {
                       <input
                         type="text"
                         value={ldapSettings.host}
-                        
                         onChange={(e) => handleLdapChange('host', e.target.value)}
                         placeholder="ldap.example.com"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
