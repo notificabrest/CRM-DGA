@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { DataProvider } from './context/DataContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ClientsPage from './pages/ClientsPage';
@@ -15,7 +16,6 @@ import CalendarPage from './pages/CalendarPage';
 import SettingsPage from './pages/SettingsPage';
 import MainLayout from './components/layout/MainLayout';
 
-// Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -62,17 +62,19 @@ const AppRoutes: React.FC = () => {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <ThemeProvider>
-          <DataProvider>
-            <div className="min-h-screen bg-gray-50 text-gray-900">
-              <AppRoutes />
-            </div>
-          </DataProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <ThemeProvider>
+            <DataProvider>
+              <div className="min-h-screen bg-gray-50 text-gray-900">
+                <AppRoutes />
+              </div>
+            </DataProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
