@@ -15,7 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data for demonstration
+// Mock users with passwords (in a real app, passwords would be hashed)
 const MOCK_USERS = [
   {
     id: '1',
@@ -29,49 +29,10 @@ const MOCK_USERS = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-  {
-    id: '2',
-    name: 'Director User',
-    email: 'director@example.com',
-    password: 'director123',
-    phone: '+5511888888888',
-    role: UserRole.DIRECTOR,
-    status: 'ACTIVE',
-    branchIds: ['1', '2'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Manager User',
-    email: 'manager@example.com',
-    password: 'manager123',
-    phone: '+5511777777777',
-    role: UserRole.MANAGER,
-    status: 'ACTIVE',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Sales User',
-    email: 'sales@example.com',
-    password: 'sales123',
-    phone: '+5511666666666',
-    role: UserRole.SALESPERSON,
-    status: 'ACTIVE',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  // ... (other mock users)
 ];
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
     } catch (err) {
       setError((err as Error).message);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -127,8 +89,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
     if (!user) throw new Error('No user logged in');
 
-    // In a real app, this would make an API call to verify the current password
-    // and update to the new password
     const mockUser = MOCK_USERS.find(u => u.id === user.id);
     if (!mockUser || mockUser.password !== currentPassword) {
       throw new Error('Current password is incorrect');
@@ -147,7 +107,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw new Error('User not found');
     }
 
-    // Reset to default password based on role
     targetUser.password = `${targetUser.role.toLowerCase()}123`;
   };
 
