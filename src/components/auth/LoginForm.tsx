@@ -87,29 +87,6 @@ const LoginForm: React.FC = () => {
           </button>
         </div>
       </form>
-
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 text-gray-500 bg-white">Demo accounts</span>
-          </div>
-        </div>
-        
-        <div className="mt-6 grid grid-cols-1 gap-3">
-          <div className="text-sm text-center text-gray-600">
-            <p>Use the following demo accounts to test the application:</p>
-            <ul className="mt-2 space-y-1">
-              <li><strong>Admin:</strong> admin@example.com / admin123</li>
-              <li><strong>Director:</strong> director@example.com / director123</li>
-              <li><strong>Manager:</strong> manager@example.com / manager123</li>
-              <li><strong>Sales:</strong> sales@example.com / sales123</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
