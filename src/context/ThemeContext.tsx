@@ -13,7 +13,6 @@ interface ThemeContextType {
   setLogo: (logo: string) => void;
 }
 
-// Default themes
 const DEFAULT_THEMES: Theme[] = [
   {
     name: 'Default',
@@ -25,8 +24,8 @@ const DEFAULT_THEMES: Theme[] = [
     successColor: '#10B981',
     warningColor: '#F59E0B',
     errorColor: '#EF4444',
-    headerName: 'CRM-DGA',
-    sidebarName: 'CRM-DGA',
+    headerName: 'SISTEMA',
+    sidebarName: 'SISTEMA',
   },
   {
     name: 'Corporate',
@@ -38,8 +37,8 @@ const DEFAULT_THEMES: Theme[] = [
     successColor: '#10B981',
     warningColor: '#F59E0B',
     errorColor: '#EF4444',
-    headerName: 'CRM-DGA',
-    sidebarName: 'CRM-DGA',
+    headerName: 'SISTEMA',
+    sidebarName: 'SISTEMA',
   },
   {
     name: 'Energetic',
@@ -51,8 +50,8 @@ const DEFAULT_THEMES: Theme[] = [
     successColor: '#10B981',
     warningColor: '#F59E0B',
     errorColor: '#EF4444',
-    headerName: 'CRM-DGA',
-    sidebarName: 'CRM-DGA',
+    headerName: 'SISTEMA',
+    sidebarName: 'SISTEMA',
   },
   {
     name: 'Professional',
@@ -64,8 +63,8 @@ const DEFAULT_THEMES: Theme[] = [
     successColor: '#059669',
     warningColor: '#F59E0B',
     errorColor: '#EF4444',
-    headerName: 'CRM-DGA',
-    sidebarName: 'CRM-DGA',
+    headerName: 'SISTEMA',
+    sidebarName: 'SISTEMA',
   },
   {
     name: 'Modern',
@@ -77,8 +76,8 @@ const DEFAULT_THEMES: Theme[] = [
     successColor: '#10B981',
     warningColor: '#F59E0B',
     errorColor: '#EF4444',
-    headerName: 'CRM-DGA',
-    sidebarName: 'CRM-DGA',
+    headerName: 'SISTEMA',
+    sidebarName: 'SISTEMA',
   },
 ];
 
@@ -89,30 +88,21 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [currentTheme, setCurrentTheme] = useState<Theme>(DEFAULT_THEMES[0]);
-  const [availableThemes] = useState<Theme[]>(DEFAULT_THEMES);
-  const [appName, setAppName] = useState('CRM-DGA');
-
-  useEffect(() => {
-    // Load saved theme and app name from localStorage
+  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('crm-theme');
-    const savedAppName = localStorage.getItem('crm-app-name');
-    
     if (savedTheme) {
       try {
-        setCurrentTheme(JSON.parse(savedTheme));
+        return JSON.parse(savedTheme);
       } catch (err) {
         console.error('Failed to parse saved theme', err);
-        localStorage.removeItem('crm-theme');
       }
     }
+    return DEFAULT_THEMES[0];
+  });
 
-    if (savedAppName) {
-      setAppName(savedAppName);
-    }
-  }, []);
+  const [availableThemes] = useState<Theme[]>(DEFAULT_THEMES);
+  const [appName, setAppName] = useState('SISTEMA');
 
-  // Apply theme to CSS variables and update document title
   useEffect(() => {
     document.documentElement.style.setProperty('--color-primary', currentTheme.primaryColor);
     document.documentElement.style.setProperty('--color-background', currentTheme.backgroundColor);
@@ -123,15 +113,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     document.documentElement.style.setProperty('--color-warning', currentTheme.warningColor || '#F59E0B');
     document.documentElement.style.setProperty('--color-error', currentTheme.errorColor || '#EF4444');
     
-    // Save theme to localStorage
     localStorage.setItem('crm-theme', JSON.stringify(currentTheme));
-  }, [currentTheme]);
-
-  // Update document title when app name changes
-  useEffect(() => {
     document.title = `${currentTheme.headerName || appName} | Customer Relationship Management`;
-    localStorage.setItem('crm-app-name', appName);
-  }, [appName, currentTheme.headerName]);
+  }, [currentTheme, appName]);
 
   const setTheme = (theme: Theme): void => {
     setCurrentTheme(theme);
