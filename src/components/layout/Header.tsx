@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
 
 interface HeaderProps {
@@ -9,9 +11,46 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { currentTheme } = useTheme();
+  const { clients, deals } = useData();
+  const [searchTerm, setSearchTerm] = useState('');
   
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+
+    if (!term) return;
+
+    // Search in clients
+    const foundClient = clients.find(client => 
+      client.name.toLowerCase().includes(term) ||
+      client.email.toLowerCase().includes(term) ||
+      client.phones.some(phone => phone.number.replace(/\D/g, '').includes(term.replace(/\D/g, '')))
+    );
+
+    if (foundClient) {
+      navigate('/clients');
+      return;
+    }
+
+    // Search in deals
+    const foundDeal = deals.find(deal => 
+      deal.title.toLowerCase().includes(term)
+    );
+
+    if (foundDeal) {
+      navigate('/pipeline');
+      return;
+    }
+
+    // If it looks like a phone number, go to phone search
+    if (/\d/.test(term)) {
+      navigate(`/phone-search/${term.replace(/\D/g, '')}`);
+    }
+  };
+
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case UserRole.ADMIN:
@@ -48,6 +87,8 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
             </div>
             <input
               type="text"
+              value={searchTerm}
+              onChange={handleSearch}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
               style={{ 
                 '--tw-ring-color': currentTheme.primaryColor,
