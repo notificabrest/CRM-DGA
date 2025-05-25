@@ -343,56 +343,63 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const loadInitialData = () => {
-    const savedData = localStorage.getItem('crm-data');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      return {
-        ...parsedData,
-        clients: parsedData.clients.map((client: any) => ({
-          ...client,
-          createdAt: new Date(client.createdAt),
-          updatedAt: new Date(client.updatedAt),
-          observations: client.observations.map((obs: any) => ({
-            ...obs,
-            createdAt: new Date(obs.createdAt),
+  const [data, setData] = useState(() => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        return {
+          ...parsedData,
+          clients: (parsedData.clients || []).map((client: any) => ({
+            ...client,
+            createdAt: new Date(client.createdAt),
+            updatedAt: new Date(client.updatedAt),
+            observations: (client.observations || []).map((obs: any) => ({
+              ...obs,
+              createdAt: new Date(obs.createdAt),
+            })),
           })),
-        })),
-        deals: parsedData.deals.map((deal: any) => ({
-          ...deal,
-          createdAt: new Date(deal.createdAt),
-          updatedAt: new Date(deal.updatedAt),
-          history: deal.history.map((hist: any) => ({
-            ...hist,
-            changedAt: new Date(hist.changedAt),
+          deals: (parsedData.deals || []).map((deal: any) => ({
+            ...deal,
+            createdAt: new Date(deal.createdAt),
+            updatedAt: new Date(deal.updatedAt),
+            history: (deal.history || []).map((hist: any) => ({
+              ...hist,
+              changedAt: new Date(hist.changedAt),
+            })),
           })),
-        })),
-        branches: parsedData.branches.map((branch: any) => ({
-          ...branch,
-          createdAt: new Date(branch.createdAt),
-          updatedAt: new Date(branch.updatedAt),
-        })),
-        users: parsedData.users.map((user: any) => ({
-          ...user,
-          createdAt: new Date(user.createdAt),
-          updatedAt: new Date(user.updatedAt),
-        })),
-        events: parsedData.events.map((event: any) => ({
-          ...event,
-          createdAt: new Date(event.createdAt),
-          updatedAt: new Date(event.updatedAt),
-          startDate: new Date(event.startDate),
-          endDate: new Date(event.endDate),
-        })),
-      };
+          branches: (parsedData.branches || []).map((branch: any) => ({
+            ...branch,
+            createdAt: new Date(branch.createdAt),
+            updatedAt: new Date(branch.updatedAt),
+          })),
+          users: (parsedData.users || []).map((user: any) => ({
+            ...user,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          })),
+          events: (parsedData.events || []).map((event: any) => ({
+            ...event,
+            createdAt: new Date(event.createdAt),
+            updatedAt: new Date(event.updatedAt),
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
+          })),
+          pipelineStatuses: parsedData.pipelineStatuses || []
+        };
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
     }
     return generateMockData();
-  };
-
-  const [data, setData] = useState(loadInitialData());
+  });
 
   useEffect(() => {
-    localStorage.setItem('crm-data', JSON.stringify(data));
+    try {
+      localStorage.setItem('crm-data', JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving data:', error);
+    }
   }, [data]);
 
   const addEvent = (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): void => {
@@ -427,7 +434,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }));
   };
 
-  // Client methods
   const addClient = (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
     const newClient: Client = {
@@ -468,7 +474,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     );
   };
 
-  // Branch methods
   const addBranch = (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
     const newBranch: Branch = {
@@ -501,7 +506,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }));
   };
 
-  // User methods
   const addUser = (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
     const newUser: User = {
@@ -534,7 +538,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }));
   };
 
-  // Deal methods
   const addDeal = (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
     const newDeal: Deal = {
@@ -605,7 +608,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }));
   };
 
-  // Pipeline status methods
   const addPipelineStatus = (status: Omit<PipelineStatus, 'id'>): void => {
     const newStatus: PipelineStatus = {
       ...status,
