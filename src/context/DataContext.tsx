@@ -8,32 +8,27 @@ interface DataContextType {
   deals: Deal[];
   pipelineStatuses: PipelineStatus[];
   events: CalendarEvent[];
-  // Calendar methods
   addEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateEvent: (id: string, updates: Partial<CalendarEvent>) => void;
   deleteEvent: (id: string) => void;
-  // Client methods
   addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateClient: (id: string, updates: Partial<Client>) => void;
   deleteClient: (id: string) => void;
   getClientByPhone: (phoneNumber: string) => Client | undefined;
-  // Branch methods
   addBranch: (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateBranch: (id: string, updates: Partial<Branch>) => void;
   deleteBranch: (id: string) => void;
-  // User methods
   addUser: (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateUser: (id: string, updates: Partial<User>) => void;
   deleteUser: (id: string) => void;
-  // Deal methods
   addDeal: (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>) => void;
   updateDeal: (id: string, updates: Partial<Deal>) => void;
   updateDealStatus: (id: string, newStatusId: string, userId: string, notes?: string) => void;
   deleteDeal: (id: string) => void;
-  // Pipeline methods
   addPipelineStatus: (status: Omit<PipelineStatus, 'id'>) => void;
   updatePipelineStatus: (id: string, updates: Partial<PipelineStatus>) => void;
   deletePipelineStatus: (id: string) => void;
+  syncData: () => void;
 }
 
 const generateMockData = () => {
@@ -397,10 +392,52 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   useEffect(() => {
     try {
       localStorage.setItem('crm-data', JSON.stringify(data));
+      
+      // Broadcast data change to other tabs/windows
+      const event = new CustomEvent('crm-data-update', { detail: data });
+      window.dispatchEvent(event);
     } catch (error) {
       console.error('Error saving data:', error);
     }
   }, [data]);
+
+  useEffect(() => {
+    // Listen for data changes from other tabs/windows
+    const handleDataUpdate = (event: CustomEvent) => {
+      if (event.detail && event.detail !== data) {
+        setData(event.detail);
+      }
+    };
+
+    window.addEventListener('crm-data-update', handleDataUpdate as EventListener);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'crm-data' && e.newValue) {
+        try {
+          const newData = JSON.parse(e.newValue);
+          setData(newData);
+        } catch (error) {
+          console.error('Error parsing storage data:', error);
+        }
+      }
+    });
+
+    return () => {
+      window.removeEventListener('crm-data-update', handleDataUpdate as EventListener);
+      window.removeEventListener('storage', handleDataUpdate as EventListener);
+    };
+  }, []);
+
+  const syncData = () => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setData(parsedData);
+      }
+    } catch (error) {
+      console.error('Error syncing data:', error);
+    }
+  };
 
   const addEvent = (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
@@ -659,6 +696,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     addPipelineStatus,
     updatePipelineStatus,
     deletePipelineStatus,
+    syncData
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
