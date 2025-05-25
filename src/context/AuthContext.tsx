@@ -30,7 +30,7 @@ const MOCK_USERS = [
   {
     id: '2',
     name: 'Sales User',
-    email: 'contato@brestelecom.com.br',
+    email: 'sales@example.com',
     password: 'sales123',
     phone: '+5511666666666',
     role: UserRole.SALESPERSON,
@@ -68,6 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
     
     try {
+      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const foundUser = MOCK_USERS.find(
@@ -78,6 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid email or password');
       }
       
+      // Remove password from user object before storing
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword as User);
       localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
