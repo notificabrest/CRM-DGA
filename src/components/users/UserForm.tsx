@@ -37,10 +37,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     onSave();
   };
 
+  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData({ ...formData, branchIds: selectedBranches });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-xl font-semibold mb-4">
+        <h2 className="text-lg font-medium mb-4">
           {user ? 'Edit User' : 'New User'}
         </h2>
         
@@ -117,16 +122,14 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Branches
+              Branches*
             </label>
             <select
               multiple
               value={formData.branchIds}
-              onChange={(e) => setFormData({
-                ...formData,
-                branchIds: Array.from(e.target.selectedOptions, option => option.value)
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              onChange={handleBranchChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
             >
               {branches.map(branch => (
                 <option key={branch.id} value={branch.id}>
