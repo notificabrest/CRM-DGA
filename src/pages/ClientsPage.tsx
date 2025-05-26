@@ -8,7 +8,7 @@ import ClientForm from '../components/clients/ClientForm';
 import { Client } from '../types';
 
 const ClientsPage: React.FC = () => {
-  const { clients, users } = useData();
+  const { clients, users, deleteClient } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
@@ -31,7 +31,7 @@ const ClientsPage: React.FC = () => {
         client.name.toLowerCase().includes(searchLower) ||
         client.email.toLowerCase().includes(searchLower) ||
         (client.company && client.company.toLowerCase().includes(searchLower)) ||
-        client.phones.some(phone => phone.number.replace(/\D/g, '').includes(searchTerm.replace(/\D/g, '')))
+        client.phones.some(phone => phone.number.includes(searchTerm.replace(/\D/g, '')))
       );
     })
     .sort((a, b) => {
@@ -59,6 +59,10 @@ const ClientsPage: React.FC = () => {
   const handleFormClose = () => {
     setShowForm(false);
     setEditingClient(undefined);
+  };
+
+  const handleDeleteClient = (id: string) => {
+    deleteClient(id);
   };
 
   const toggleSortOrder = () => {
@@ -154,6 +158,7 @@ const ClientsPage: React.FC = () => {
                     client={client} 
                     owner={owner} 
                     onClick={() => handleEditClient(client)}
+                    onDelete={handleDeleteClient}
                   />
                 );
               })}

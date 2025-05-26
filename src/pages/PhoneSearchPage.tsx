@@ -10,7 +10,7 @@ import { PhoneType } from '../types';
 const PhoneSearchPage: React.FC = () => {
   const { phoneNumber } = useParams<{ phoneNumber?: string }>();
   const navigate = useNavigate();
-  const { clients, users, getClientByPhone } = useData();
+  const { clients, users, getClientByPhone, deleteClient } = useData();
   
   const [searchResult, setSearchResult] = useState<any | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -52,6 +52,11 @@ const PhoneSearchPage: React.FC = () => {
     setShowForm(true);
   };
 
+  const handleDeleteClient = (id: string) => {
+    deleteClient(id);
+    setSearchResult(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,7 +71,7 @@ const PhoneSearchPage: React.FC = () => {
             <PhoneSearchInput 
               onSearch={handleSearch} 
               fullWidth 
-              placeholder="Enter phone number (e.g., +55 11 98765 4321)" 
+              placeholder="Enter phone number (e.g., 11987654321)" 
             />
             <p className="mt-2 text-sm text-gray-500">
               Enter a phone number to search for a client. The system will search across all phone fields.
@@ -96,7 +101,7 @@ const PhoneSearchPage: React.FC = () => {
                 {
                   id: `phone-${Date.now()}`,
                   type: PhoneType.MAIN,
-                  number: phoneNumber.replace(/(\d{2})(\d{2})(\d{4,5})(\d{4})/, '+$1 $2 $3 $4'),
+                  number: phoneNumber,
                   isPrimary: true,
                 }
               ],
@@ -123,6 +128,7 @@ const PhoneSearchPage: React.FC = () => {
                     client={searchResult} 
                     owner={users.find(u => u.id === searchResult.ownerId)}
                     onClick={handleViewDetails}
+                    onDelete={handleDeleteClient}
                   />
                   <div className="flex flex-col justify-center items-center p-6 border border-gray-200 rounded-lg bg-gray-50">
                     <p className="text-center text-gray-700 mb-4">

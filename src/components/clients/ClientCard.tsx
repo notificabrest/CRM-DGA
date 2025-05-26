@@ -1,15 +1,23 @@
 import React from 'react';
-import { Phone, Mail, Building2, Tag, User } from 'lucide-react';
+import { Phone, Mail, Building2, Tag, User, Trash2 } from 'lucide-react';
 import { Client, User as UserType } from '../../types';
 
 interface ClientCardProps {
   client: Client;
   owner?: UserType;
   onClick?: () => void;
+  onDelete?: (id: string) => void;
 }
 
-const ClientCard: React.FC<ClientCardProps> = ({ client, owner, onClick }) => {
+const ClientCard: React.FC<ClientCardProps> = ({ client, owner, onClick, onDelete }) => {
   const primaryPhone = client.phones.find(phone => phone.isPrimary) || client.phones[0];
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete && window.confirm('Are you sure you want to delete this client?')) {
+      onDelete(client.id);
+    }
+  };
 
   return (
     <div 
@@ -19,11 +27,20 @@ const ClientCard: React.FC<ClientCardProps> = ({ client, owner, onClick }) => {
       <div className="p-4">
         <div className="flex justify-between items-start">
           <h3 className="font-medium text-lg text-gray-900">{client.name}</h3>
-          <span className={`px-2 py-0.5 text-xs rounded-full ${
-            client.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-          }`}>
-            {client.status}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 text-xs rounded-full ${
+              client.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+            }`}>
+              {client.status}
+            </span>
+            <button
+              onClick={handleDelete}
+              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+              title="Delete client"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
         
         {client.company && (
