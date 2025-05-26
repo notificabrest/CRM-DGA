@@ -20,7 +20,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     password: '' // Only used for new users
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (user) {
@@ -35,6 +35,11 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     }
     
     onSave();
+  };
+
+  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData({ ...formData, branchIds: selectedBranches });
   };
 
   return (
@@ -122,10 +127,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
             <select
               multiple
               value={formData.branchIds}
-              onChange={(e) => setFormData({
-                ...formData,
-                branchIds: Array.from(e.target.selectedOptions, option => option.value)
-              })}
+              onChange={handleBranchChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
             >
