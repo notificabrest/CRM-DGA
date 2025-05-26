@@ -8,12 +8,40 @@ interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  resetPassword: (email: string) => Promise<void>;
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Mock users with passwords (in a real app, passwords would be hashed)
+const MOCK_USERS = [
+  {
+    id: '1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: 'admin123',
+    phone: '+5511999999999',
+    role: UserRole.ADMIN,
+    status: 'ACTIVE',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Sales User',
+    email: 'jonny@brestelecom.com.br',
+    password: 'sales123',
+    phone: '+5511666666666',
+    role: UserRole.SALESPERSON,
+    status: 'ACTIVE',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+];
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -25,61 +53,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for existing session
-    const checkSession = async () => {
+    const savedUser = localStorage.getItem('crm-user');
+    if (savedUser) {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (session?.user) {
-          // Get user data from our users table
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (userError) throw userError;
-          
-          setUser(userData);
-        }
+        setUser(JSON.parse(savedUser));
       } catch (err) {
-        console.error('Error checking session:', err);
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
+        console.error('Failed to parse saved user', err);
+        localStorage.removeItem('crm-user');
       }
-    };
-
-    checkSession();
-
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Get user data from our users table
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (userError) {
-          console.error('Error fetching user data:', userError);
-          setError('Error loading user data. Please try again.');
-          return;
-        }
-
-        setUser(userData);
-        setError(null);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setError(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
@@ -87,33 +70,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        // Provide more user-friendly error messages
-        if (error.message === 'Invalid login credentials') {
-          throw new Error('The email or password you entered is incorrect. Please try again.');
-        }
-        throw error;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const foundUser = MOCK_USERS.find(
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      );
+      
+      if (!foundUser) {
+        throw new Error('Invalid email or password');
       }
-
-      if (data.user) {
-        // Get user data from our users table
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (userError) {
-          throw new Error('Error loading user data. Please try again.');
-        }
-        
-        setUser(userData);
-      }
+      
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword as User);
+      localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
     } catch (err) {
       setError((err as Error).message);
       throw err;
@@ -122,37 +91,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const resetPassword = async (email: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-    } catch (err) {
-      setError((err as Error).message);
-      throw err;
-    } finally {
-      setLoading(false);
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user) {
+      throw new Error('No user logged in');
     }
+
+    const foundUser = MOCK_USERS.find(u => u.email === user.email);
+    if (!foundUser || foundUser.password !== currentPassword) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // In a real app, this would make an API call to update the password
+    foundUser.password = newPassword;
+    return Promise.resolve();
   };
 
-  const logout = async (): Promise<void> => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      setUser(null);
-      setError(null);
-    } catch (err) {
-      console.error('Error signing out:', err);
-      setError((err as Error).message);
-    } finally {
-      setLoading(false);
-    }
+  const logout = (): void => {
+    setUser(null);
+    localStorage.removeItem('crm-user');
   };
 
   const hasPermission = (requiredRoles: UserRole[]): boolean => {
@@ -166,9 +122,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
     login,
     logout,
-    resetPassword,
     isAuthenticated: !!user,
     hasPermission,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

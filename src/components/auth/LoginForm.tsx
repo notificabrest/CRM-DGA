@@ -3,92 +3,15 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginForm: React.FC = () => {
-  const { login, error, loading, resetPassword } = useAuth();
+  const { login, error, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await login(email, password);
-    } catch (err) {
-      // Error is handled by the AuthContext
-    }
+    await login(email, password);
   };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      return; // Email is required for password reset
-    }
-    try {
-      await resetPassword(email);
-      setResetSent(true);
-    } catch (err) {
-      // Error is handled by the AuthContext
-    }
-  };
-
-  if (isResettingPassword) {
-    return (
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-orange-500">Reset Password</h1>
-          <p className="mt-2 text-gray-600">Enter your email to reset your password</p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
-          {error && (
-            <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
-              {error}
-            </div>
-          )}
-
-          {resetSent && (
-            <div className="p-3 text-sm text-green-800 bg-green-100 rounded-md">
-              Password reset instructions have been sent to your email
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <input
-              id="reset-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading || !email}
-              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-500 border border-transparent rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Send Reset Instructions'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsResettingPassword(false)}
-              className="flex-1 px-4 py-2 text-sm font-medium text-orange-700 bg-orange-100 border border-transparent rounded-md shadow-sm hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-            >
-              Back to Login
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -100,9 +23,7 @@ const LoginForm: React.FC = () => {
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         {error && (
           <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
-            {error === 'Invalid login credentials' 
-              ? 'The email or password you entered is incorrect. Please try again.'
-              : error}
+            {error}
           </div>
         )}
         
@@ -165,13 +86,9 @@ const LoginForm: React.FC = () => {
           </div>
 
           <div className="text-sm">
-            <button
-              type="button"
-              onClick={() => setIsResettingPassword(true)}
-              className="font-medium text-orange-600 hover:text-orange-500"
-            >
+            <a href="#" className="font-medium text-orange-600 hover:text-orange-500">
               Forgot your password?
-            </button>
+            </a>
           </div>
         </div>
 
