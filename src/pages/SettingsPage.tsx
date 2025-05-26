@@ -51,7 +51,8 @@ const SettingsPage: React.FC = () => {
     role: UserRole.SALESPERSON,
     status: UserStatus.ACTIVE,
     branchIds: [] as string[],
-    branchId: '' // Add branchId for primary branch
+    branchId: '',
+    password: ''
   });
 
   useEffect(() => {
@@ -172,7 +173,8 @@ const SettingsPage: React.FC = () => {
         role: UserRole.SALESPERSON,
         status: UserStatus.ACTIVE,
         branchIds: [],
-        branchId: ''
+        branchId: '',
+        password: ''
       });
     }
   };
@@ -188,7 +190,8 @@ const SettingsPage: React.FC = () => {
         role: UserRole.SALESPERSON,
         status: UserStatus.ACTIVE,
         branchIds: [],
-        branchId: ''
+        branchId: '',
+        password: ''
       });
     }
   };
@@ -646,6 +649,25 @@ const SettingsPage: React.FC = () => {
                 Hold Ctrl/Cmd to select multiple branches
               </p>
             </div>
+
+            {!editingUser && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Initial Password
+                </label>
+                <input
+                  type="password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Enter initial password"
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Set an initial password for the user
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="mb-6">
@@ -725,7 +747,8 @@ const SettingsPage: React.FC = () => {
                             role: user.role,
                             status: user.status,
                             branchIds: user.branchIds,
-                            branchId: user.branchId
+                            branchId: user.branchId,
+                            password: ''
                           });
                         }}
                         className="text-blue-600 hover:text-blue-900 mr-3"
@@ -734,7 +757,7 @@ const SettingsPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600  hover:text-red-900"
                       >
                         <Trash2 size={16} />
                       </button>
