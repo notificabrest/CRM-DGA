@@ -4,11 +4,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { UserRole } from '../types';
+import { UserRole, EventStatus, EventType } from '../types';
 
 const DashboardPage: React.FC = () => {
   const { user, hasPermission } = useAuth();
-  const { clients, deals, pipelineStatuses } = useData();
+  const { clients, deals, pipelineStatuses, events } = useData();
 
   // Calculate metrics
   const activeClients = clients.filter(client => client.status === 'ACTIVE').length;
@@ -32,10 +32,58 @@ const DashboardPage: React.FC = () => {
     };
   });
 
+  // Get upcoming tasks from calendar events
+  const upcomingTasks = events
+    .filter(event => {
+      const isUserTask = event.ownerId === user?.id || event.attendees?.includes(user?.id || '');
+      const isPending = event.status === EventStatus.PENDING || event.status === EventStatus.IN_PROGRESS;
+      const isUpcoming = new Date(event.startDate) >= new Date();
+      return isUserTask && isPending && isUpcoming;
+    })
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    .slice(0, 5);
+
   // Role-based metrics
   const isDirectorOrAbove = hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]);
   const isManager = hasPermission([UserRole.MANAGER]);
   const isSalesperson = hasPermission([UserRole.SALESPERSON]);
+
+  // Helper function to get event type style
+  const getEventTypeStyle = (type: EventType) => {
+    switch (type) {
+      case EventType.MEETING:
+        return 'bg-blue-50 border-blue-200 text-blue-800';
+      case EventType.TASK:
+        return 'bg-orange-50 border-orange-200 text-orange-800';
+      case EventType.REMINDER:
+        return 'bg-purple-50 border-purple-200 text-purple-800';
+      case EventType.DEAL:
+        return 'bg-green-50 border-green-200 text-green-800';
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-800';
+    }
+  };
+
+  // Helper function to format date
+  const formatEventDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const eventDate = new Date(date);
+    
+    if (eventDate.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (eventDate.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return eventDate.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -178,27 +226,36 @@ const DashboardPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <h3 className="text-lg font-medium mb-4">Upcoming Tasks</h3>
           <div className="space-y-2">
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Call with João Silva</span>
-                <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">Today</span>
+            {upcomingTasks.length > 0 ? (
+              upcomingTasks.map(event => (
+                <div 
+                  key={event.id} 
+                  className={`p-3 border rounded-md ${getEventTypeStyle(event.type)}`}
+                >
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">{event.title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-white bg-opacity-50">
+                      {formatEventDate(event.startDate)}
+                    </span>
+                  </div>
+                  {event.description && (
+                    <p className="text-xs mt-1 opacity-75">{event.description}</p>
+                  )}
+                  <p className="text-xs mt-1">
+                    {new Date(event.startDate).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                    {event.location && ` - ${event.location}`}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                No upcoming tasks
               </div>
-              <p className="text-xs text-gray-500 mt-1">10:30 AM - Discuss new proposal</p>
-            </div>
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Email follow-up</span>
-                <span className="text-xs bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full">Tomorrow</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Send SaaS proposal to XYZ Industries</p>
-            </div>
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Team meeting</span>
-                <span className="text-xs bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full">Wed, 15</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">9:00 AM - Weekly pipeline review</p>
-            </div>
+            )}
           </div>
         </div>
       </div>
