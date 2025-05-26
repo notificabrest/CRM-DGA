@@ -8,6 +8,7 @@ interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<void>;
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
 }
@@ -64,12 +65,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (userError) {
           console.error('Error fetching user data:', userError);
+          setError('Error loading user data. Please try again.');
           return;
         }
 
         setUser(userData);
+        setError(null);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setError(null);
       }
     });
 
@@ -88,7 +92,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide more user-friendly error messages
+        if (error.message === 'Invalid login credentials') {
+          throw new Error('The email or password you entered is incorrect. Please try again.');
+        }
+        throw error;
+      }
 
       if (data.user) {
         // Get user data from our users table
@@ -98,7 +108,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           .eq('id', data.user.id)
           .single();
 
-        if (userError) throw userError;
+        if (userError) {
+          throw new Error('Error loading user data. Please try again.');
+        }
         
         setUser(userData);
       }
@@ -110,12 +122,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async (): Promise<void> => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+  const resetPassword = async (email: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+    } catch (err) {
+      setError((err as Error).message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    setUser(null);
+  };
+
+  const logout = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setError(null);
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const hasPermission = (requiredRoles: UserRole[]): boolean => {
@@ -129,6 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
     login,
     logout,
+    resetPassword,
     isAuthenticated: !!user,
     hasPermission,
   };
