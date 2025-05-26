@@ -11,17 +11,7 @@ interface PhoneSearchInputProps {
 const formatPhoneNumber = (value: string): string => {
   // Remove all non-numeric characters
   const numbers = value.replace(/\D/g, '');
-  
-  // Format based on length
-  if (numbers.length <= 2) {
-    return numbers;
-  } else if (numbers.length <= 5) {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2)}`;
-  } else if (numbers.length <= 9) {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2, 5)} ${numbers.slice(5)}`;
-  } else {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2, 5)} ${numbers.slice(5, 9)} ${numbers.slice(9, 13)}`;
-  }
+  return numbers;
 };
 
 const PhoneSearchInput: React.FC<PhoneSearchInputProps> = ({ 
@@ -43,7 +33,6 @@ const PhoneSearchInput: React.FC<PhoneSearchInputProps> = ({
       if (onSearch) {
         onSearch(cleanPhone);
       } else {
-        // Stay on the phone-search page but with the phone number parameter
         navigate(`/phone-search/${cleanPhone}`);
       }
     }

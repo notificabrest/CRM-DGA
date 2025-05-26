@@ -20,19 +20,8 @@ const initialPhones: Phone[] = [
 ];
 
 const formatPhoneNumber = (value: string): string => {
-  // Remove all non-numeric characters
-  const numbers = value.replace(/\D/g, '');
-  
-  // Format based on length
-  if (numbers.length <= 2) {
-    return numbers;
-  } else if (numbers.length <= 5) {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2)}`;
-  } else if (numbers.length <= 9) {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2, 5)} ${numbers.slice(5)}`;
-  } else {
-    return `+${numbers.slice(0, 2)} ${numbers.slice(2, 5)} ${numbers.slice(5, 9)} ${numbers.slice(9, 13)}`;
-  }
+  // Remove all non-numeric characters and return just numbers
+  return value.replace(/\D/g, '');
 };
 
 const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => {
@@ -141,10 +130,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => 
     e.preventDefault();
     
     if (client) {
-      // Update existing client
       updateClient(client.id, formData);
     } else {
-      // Add new client
       addClient(formData as Omit<Client, 'id' | 'createdAt' | 'updatedAt'>);
     }
     
@@ -285,7 +272,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => 
               type="text"
               value={phone.number}
               onChange={(e) => handlePhoneChange(phone.id, e.target.value)}
-              placeholder="+55 11 98765 4321"
+              placeholder="Enter phone number"
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               required={index === 0}
             />
