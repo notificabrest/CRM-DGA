@@ -8,31 +8,83 @@ import { UserRole, EventStatus, EventType } from '../types';
 
 const DashboardPage: React.FC = () => {
   const { user, hasPermission } = useAuth();
-  const { clients, deals, pipelineStatuses, events } = useData();
+  const { clients, deals, pipelineStatuses, events, users, branches } = useData();
 
-  // Calculate metrics
+  // Filter deals based on user role and branch
+  const filteredDeals = deals.filter(deal => {
+    if (!user) return false;
+
+    const dealOwner = users.find(u => u.id === deal.ownerId);
+    if (!dealOwner) return false;
+
+    if (user.role === UserRole.DIRECTOR || user.role === UserRole.ADMIN) {
+      return true; // Can see all deals
+    }
+
+    if (user.role === UserRole.MANAGER) {
+      // Can see deals from users in the same branch
+      return user.branchIds.some(branchId => dealOwner.branchIds.includes(branchId));
+    }
+
+    // Salespeople can only see their own deals
+    return deal.ownerId === user.id;
+  });
+
+  // Calculate metrics based on filtered deals
+  const totalDeals = filteredDeals.length;
   const activeClients = clients.filter(client => client.status === 'ACTIVE').length;
-  const totalDeals = deals.length;
-  const openDeals = deals.filter(deal => 
-    !['6', '7'].includes(deal.statusId) // Not in Closed Won or Closed Lost
-  ).length;
-  const wonDeals = deals.filter(deal => deal.statusId === '6').length;
-  const dealsValue = deals.reduce((total, deal) => total + deal.value, 0);
-  const openDealsValue = deals
-    .filter(deal => !['6', '7'].includes(deal.statusId))
-    .reduce((total, deal) => total + deal.value, 0);
+  const totalRevenue = filteredDeals
+    .filter(deal => deal.statusId === '6') // Closed Won
+    .reduce((sum, deal) => sum + deal.value, 0);
+  
+  const averageDealSize = totalRevenue / totalDeals || 0;
+  const conversionRate = (filteredDeals.filter(deal => deal.statusId === '6').length / totalDeals) * 100 || 0;
 
   // Calculate deal distribution
   const dealsByStatus = pipelineStatuses.map(status => {
-    const statusDeals = deals.filter(deal => deal.statusId === status.id);
+    const statusDeals = filteredDeals.filter(deal => deal.statusId === status.id);
     return {
       ...status,
       count: statusDeals.length,
-      value: statusDeals.reduce((total, deal) => total + deal.value, 0),
+      value: statusDeals.reduce((sum, deal) => sum + deal.value, 0),
     };
   });
 
-  // Get upcoming tasks from calendar events
+  // Get top 5 salespeople
+  const getTopSalespeople = () => {
+    const salesData = users
+      .filter(u => u.role === UserRole.SALESPERSON)
+      .map(salesperson => {
+        const salesDeals = deals.filter(deal => {
+          if (deal.ownerId !== salesperson.id) return false;
+          
+          // For managers, only show salespeople from their branches
+          if (user?.role === UserRole.MANAGER) {
+            return user.branchIds.some(branchId => salesperson.branchIds.includes(branchId));
+          }
+          return true;
+        });
+
+        const totalValue = salesDeals
+          .filter(deal => deal.statusId === '6') // Closed Won
+          .reduce((sum, deal) => sum + deal.value, 0);
+
+        return {
+          id: salesperson.id,
+          name: salesperson.name,
+          avatar: salesperson.avatar,
+          totalValue,
+          dealsCount: salesDeals.length,
+          branch: branches.find(b => salesperson.branchIds.includes(b.id))?.name
+        };
+      })
+      .sort((a, b) => b.totalValue - a.totalValue)
+      .slice(0, 5);
+
+    return salesData;
+  };
+
+  // Get upcoming tasks
   const upcomingTasks = events
     .filter(event => {
       const isUserTask = event.ownerId === user?.id || event.attendees?.includes(user?.id || '');
@@ -46,7 +98,6 @@ const DashboardPage: React.FC = () => {
   // Role-based metrics
   const isDirectorOrAbove = hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]);
   const isManager = hasPermission([UserRole.MANAGER]);
-  const isSalesperson = hasPermission([UserRole.SALESPERSON]);
 
   // Helper function to get event type style
   const getEventTypeStyle = (type: EventType) => {
@@ -125,8 +176,8 @@ const DashboardPage: React.FC = () => {
               <CreditCard size={20} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Open Deals</p>
-              <p className="text-2xl font-semibold text-gray-900">{openDeals}</p>
+              <p className="text-sm font-medium text-gray-500">Total Deals</p>
+              <p className="text-2xl font-semibold text-gray-900">{totalDeals}</p>
             </div>
           </div>
         </div>
@@ -137,13 +188,13 @@ const DashboardPage: React.FC = () => {
               <TrendingUp size={20} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pipeline Value</p>
+              <p className="text-sm font-medium text-gray-500">Total Revenue</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                   maximumFractionDigits: 0,
-                }).format(openDealsValue)}
+                }).format(totalRevenue)}
               </p>
             </div>
           </div>
@@ -155,8 +206,10 @@ const DashboardPage: React.FC = () => {
               <UserCheck size={20} />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Won Deals</p>
-              <p className="text-2xl font-semibold text-gray-900">{wonDeals}</p>
+              <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
+              <p className="text-2xl font-semibold text-gray-900">
+                {conversionRate.toFixed(1)}%
+              </p>
             </div>
           </div>
         </div>
@@ -193,12 +246,64 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Top Performers Section - Only visible to managers and above */}
+      {(isDirectorOrAbove || isManager) && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-medium mb-4">Top Performers</h2>
+          <div className="space-y-4">
+            {getTopSalespeople().map(salesperson => (
+              <div key={salesperson.id} className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  {salesperson.avatar ? (
+                    <img
+                      src={salesperson.avatar}
+                      alt={salesperson.name}
+                      className="w-full h-full rounded-full"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium">
+                      {salesperson.name.substring(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="ml-3 flex-1">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {salesperson.name}
+                      </span>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {salesperson.branch}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(salesperson.totalValue)}
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1 bg-gray-200 rounded-full">
+                    <div
+                      className="h-1 bg-orange-500 rounded-full"
+                      style={{
+                        width: `${(salesperson.totalValue / getTopSalespeople()[0].totalValue) * 100}%`
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recent Activity & Upcoming Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
           <div className="space-y-4">
-            {deals
+            {filteredDeals
               .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
               .slice(0, 5)
               .map(deal => {

@@ -7,7 +7,7 @@ import { PipelineStatus, UserRole, UserStatus } from '../types';
 
 const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
-  const { pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus, addUser, updateUser, deleteUser, users } = useData();
+  const { pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus, addUser, updateUser, deleteUser, users, branches } = useData();
   const { hasPermission } = useAuth();
   
   const [selectedTheme, setSelectedTheme] = useState(currentTheme.name);
@@ -50,7 +50,8 @@ const SettingsPage: React.FC = () => {
     phone: '',
     role: UserRole.SALESPERSON,
     status: UserStatus.ACTIVE,
-    branchIds: [] as string[]
+    branchIds: [] as string[],
+    branchId: '' // Add branchId for primary branch
   });
 
   useEffect(() => {
@@ -170,7 +171,8 @@ const SettingsPage: React.FC = () => {
         phone: '',
         role: UserRole.SALESPERSON,
         status: UserStatus.ACTIVE,
-        branchIds: []
+        branchIds: [],
+        branchId: ''
       });
     }
   };
@@ -185,7 +187,8 @@ const SettingsPage: React.FC = () => {
         phone: '',
         role: UserRole.SALESPERSON,
         status: UserStatus.ACTIVE,
-        branchIds: []
+        branchIds: [],
+        branchId: ''
       });
     }
   };
@@ -604,6 +607,45 @@ const SettingsPage: React.FC = () => {
                 ))}
               </select>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Primary Branch
+              </label>
+              <select
+                value={userForm.branchId}
+                onChange={(e) => setUserForm({ ...userForm, branchId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                required
+              >
+                <option value="">Select Branch</option>
+                {branches.map(branch => (
+                  <option key={branch.id} value={branch.id}>{branch.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Additional Branches
+              </label>
+              <select
+                multiple
+                value={userForm.branchIds}
+                onChange={(e) => {
+                  const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+                  setUserForm({ ...userForm, branchIds: selectedBranches });
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                {branches.map(branch => (
+                  <option key={branch.id} value={branch.id}>{branch.name}</option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Hold Ctrl/Cmd to select multiple branches
+              </p>
+            </div>
           </div>
           
           <div className="mb-6">
@@ -682,7 +724,8 @@ const SettingsPage: React.FC = () => {
                             phone: user.phone,
                             role: user.role,
                             status: user.status,
-                            branchIds: user.branchIds
+                            branchIds: user.branchIds,
+                            branchId: user.branchId
                           });
                         }}
                         className="text-blue-600 hover:text-blue-900 mr-3"
@@ -714,7 +757,8 @@ const SettingsPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={ldapSettings.enabled}
-                    onChange={(e) => handleLdapChange('enabled', e.target.checked)}
+                    onChange={(e) => handleLdap
+Change('enabled', e.target.checked)}
                     className="form-checkbox h-4 w-4 text-orange-500"
                   />
                   <span className="ml-2">Enable LDAP Authentication</span>
