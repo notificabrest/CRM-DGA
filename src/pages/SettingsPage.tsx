@@ -757,8 +757,7 @@ const SettingsPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={ldapSettings.enabled}
-                    onChange={(e) => handleLdap
-Change('enabled', e.target.checked)}
+                    onChange={(e) => handleLdapChange('enabled', e.target.checked)}
                     className="form-checkbox h-4 w-4 text-orange-500"
                   />
                   <span className="ml-2">Enable LDAP Authentication</span>
