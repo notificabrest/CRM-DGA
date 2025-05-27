@@ -20,8 +20,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     status: user?.status || UserStatus.ACTIVE,
     branchIds: user?.branchIds || [],
     branchId: user?.branchIds?.[0] || '',
-    pass: '' // New password field
+    pass: '' // Password field
   });
+
+  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData({ ...formData, branchIds: selectedBranches });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +48,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     }
     
     onSave();
-  };
-
-  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData({ ...formData, branchIds: selectedBranches });
   };
 
   return (
