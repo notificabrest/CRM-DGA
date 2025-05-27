@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginForm: React.FC = () => {
@@ -22,8 +22,15 @@ const LoginForm: React.FC = () => {
       
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         {error && (
-          <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
-            {error}
+          <div className="p-4 text-sm text-red-800 bg-red-100 rounded-md flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Login failed</p>
+              <p className="mt-1">{error}</p>
+              <p className="mt-2">
+                If this is your first time logging in, your default password is: <span className="font-mono font-medium">CRM@123</span>
+              </p>
+            </div>
           </div>
         )}
         
@@ -70,6 +77,9 @@ const LoginForm: React.FC = () => {
               )}
             </button>
           </div>
+          <p className="mt-2 text-sm text-gray-500">
+            First time users: Your default password is <span className="font-mono font-medium">CRM@123</span>
+          </p>
         </div>
 
         <div className="flex items-center justify-between">
