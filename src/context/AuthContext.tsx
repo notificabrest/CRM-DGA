@@ -58,36 +58,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
+      // First try with the provided password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        password: password || 'CRM@123' // Use default password if none provided
+        password
       });
 
-      if (authError) {
-        // If login fails with provided password, try default password
-        if (password !== 'CRM@123') {
-          const { data: defaultAuthData, error: defaultAuthError } = await supabase.auth.signInWithPassword({
-            email,
-            password: 'CRM@123'
-          });
+      // If the provided password fails and it's not the default password, try the default password
+      if (authError && password !== 'CRM@123') {
+        const { data: defaultAuthData, error: defaultAuthError } = await supabase.auth.signInWithPassword({
+          email,
+          password: 'CRM@123'
+        });
 
-          if (defaultAuthError) throw defaultAuthError;
-          if (defaultAuthData.user) {
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', defaultAuthData.user.id)
-              .single();
-
-            if (userError) throw userError;
-            setUser(userData as User);
-            return;
-          }
+        if (defaultAuthError) {
+          throw new Error('Invalid login credentials. Please check your email and password.');
         }
-        throw authError;
+
+        if (defaultAuthData.user) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', defaultAuthData.user.id)
+            .single();
+
+          if (userError) throw userError;
+          setUser(userData as User);
+          return;
+        }
+      } else if (authError) {
+        throw new Error('Invalid login credentials. Please check your email and password.');
       }
 
-      if (authData.user) {
+      if (authData?.user) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
