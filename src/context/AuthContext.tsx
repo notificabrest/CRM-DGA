@@ -15,6 +15,88 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock users with passwords (in a real app, passwords would be hashed)
+const MOCK_USERS = [
+  {
+    id: '1',
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: 'admin123',
+    phone: '+5511999999999',
+    role: UserRole.ADMIN,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Director User',
+    email: 'director@example.com',
+    password: 'director123',
+    phone: '+5511888888888',
+    role: UserRole.DIRECTOR,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1', '2'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    name: 'Manager User',
+    email: 'manager@example.com',
+    password: 'manager123',
+    phone: '+5511777777777',
+    role: UserRole.MANAGER,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    name: 'Jonny Santos',
+    email: 'jonny@brestelecom.com.br',
+    password: 'vendas123',
+    phone: '+5511666666666',
+    role: UserRole.SALESPERSON,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '5',
+    name: 'Alex Support',
+    email: 'suporte@brestelecom.com.br',
+    password: 'suporte123',
+    phone: '+5511555555555',
+    role: UserRole.ASSISTANT,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '6',
+    name: 'Rafael Sales',
+    email: 'contato@brestelecom.com.br',
+    password: 'vendas123',
+    phone: '+5511444444444',
+    role: UserRole.SALESPERSON,
+    status: 'ACTIVE',
+    branchId: '1',
+    branchIds: ['1'],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+];
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -25,50 +107,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!error && userData) {
-          setUser(userData as User);
-        }
-      } else {
-        setUser(null);
+    const savedUser = localStorage.getItem('crm-user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error('Failed to parse saved user', err);
+        localStorage.removeItem('crm-user');
       }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (userError) throw userError;
-        setUser(userData as User);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const foundUser = MOCK_USERS.find(
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      );
+      
+      if (!foundUser) {
+        throw new Error('Invalid email or password');
       }
+      
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword as User);
+      localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
     } catch (err) {
       setError((err as Error).message);
       throw err;
@@ -77,18 +145,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const foundUser = MOCK_USERS.find(u => u.email === user.email);
+    if (!foundUser || foundUser.password !== currentPassword) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // In a real app, this would make an API call to update the password
+    foundUser.password = newPassword;
+    return Promise.resolve();
   };
 
-  const updatePassword = async (currentPassword: string, newPassword: string) => {
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-    } catch (err) {
-      throw new Error((err as Error).message);
-    }
+  const logout = (): void => {
+    setUser(null);
+    localStorage.removeItem('crm-user');
   };
 
   const hasPermission = (requiredRoles: UserRole[]): boolean => {
