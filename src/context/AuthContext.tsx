@@ -27,20 +27,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        try {
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
 
-          if (userError) throw userError;
-          if (userData) {
-            setUser(userData as User);
-          }
-        } catch (err) {
-          console.error('Error fetching user data:', err);
-          setUser(null);
+        if (!error && userData) {
+          setUser(userData as User);
         }
       } else {
         setUser(null);
@@ -58,51 +52,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // First try with the provided password
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
-      // If the provided password fails and it's not the default password, try the default password
-      if (authError && password !== 'CRM@123') {
-        const { data: defaultAuthData, error: defaultAuthError } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'CRM@123'
-        });
+      if (error) throw error;
 
-        if (defaultAuthError) {
-          throw new Error('Invalid login credentials. Please check your email and password.');
-        }
-
-        if (defaultAuthData.user) {
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', defaultAuthData.user.id)
-            .single();
-
-          if (userError) throw userError;
-          setUser(userData as User);
-          return;
-        }
-      } else if (authError) {
-        throw new Error('Invalid login credentials. Please check your email and password.');
-      }
-
-      if (authData?.user) {
+      if (data.user) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
-          .eq('id', authData.user.id)
+          .eq('id', data.user.id)
           .single();
 
         if (userError) throw userError;
         setUser(userData as User);
       }
     } catch (err) {
-      const errorMessage = (err as Error).message;
-      setError(errorMessage);
+      setError((err as Error).message);
       throw err;
     } finally {
       setLoading(false);
