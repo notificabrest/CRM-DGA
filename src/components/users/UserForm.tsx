@@ -19,8 +19,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     role: user?.role || UserRole.SALESPERSON,
     status: user?.status || UserStatus.ACTIVE,
     branchIds: user?.branchIds || [],
-    branchId: '',
-    password: '' // New password field
+    branchId: user?.branchIds?.[0] || '',
+    pass: '' // New password field
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,15 +30,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
       // Only update password if it was changed
       const updates = {
         ...formData,
-        password: formData.password ? formData.password : undefined
+        pass: formData.pass ? formData.pass : undefined
       };
       updateUser(user.id, updates);
     } else {
       // For new users, use the provided password or generate a default one
-      const password = formData.password || `${formData.role.toLowerCase()}123`;
+      const pass = formData.pass || `${formData.role.toLowerCase()}123`;
       addUser({
         ...formData,
-        password
+        pass
       });
     }
     
@@ -127,7 +127,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password {user ? '(leave blank to keep current)' : '*'}
@@ -135,8 +135,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                value={formData.pass}
+                onChange={(e) => setFormData({ ...formData, pass: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 pr-10"
                 placeholder={user ? "Enter new password" : "Enter password"}
                 {...(!user && { required: true })}
@@ -157,13 +157,31 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Branches*
+              Primary Branch*
+            </label>
+            <select
+              value={formData.branchId}
+              onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">Select Branch</option>
+              {branches.map(branch => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Additional Branches
             </label>
             <select
               multiple
               value={formData.branchIds}
               onChange={handleBranchChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
             >
               {branches.map(branch => (
@@ -181,7 +199,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         {!user && (
           <div className="mt-4 p-4 bg-gray-50 rounded-md">
             <p className="text-sm text-gray-600">
-              {formData.password ? 
+              {formData.pass ? 
                 "The user will use the specified password to log in." :
                 `A default password will be generated based on the user's role (e.g., admin123, sales123).
                 The user should change this password on their first login.`}
