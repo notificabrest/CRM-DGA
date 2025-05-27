@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
       <div className="flex flex-col items-center">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-extrabold text-orange-500">{currentTheme.headerName}</h1>
-          <p className="mt-2 text-gray-600 text-xl">Customer Relationship Management</p>
+          <p className="mt-2 text-gray-600 text-xl">Gestão de Relacionamento com o Cliente</p>
         </div>
         <LoginForm />
       </div>
