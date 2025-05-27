@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole, UserStatus } from '../../types';
 import { useData } from '../../context/DataContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface UserFormProps {
   user?: User;
@@ -10,6 +11,7 @@ interface UserFormProps {
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
   const { branches, addUser, updateUser } = useData();
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -17,42 +19,36 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     role: user?.role || UserRole.SALESPERSON,
     status: user?.status || UserStatus.ACTIVE,
     branchIds: user?.branchIds || [],
-    password: '' // Only used for new users
+    password: user ? '' : 'CRM@123', // Default password for new users
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (user) {
-      updateUser(user.id, formData);
+      const updates = { ...formData };
+      if (!updates.password) {
+        delete updates.password; // Don't update password if not changed
+      }
+      updateUser(user.id, updates);
     } else {
-      // For new users, generate a default password based on role
-      const defaultPassword = `${formData.role.toLowerCase()}123`;
-      addUser({
-        ...formData,
-        password: defaultPassword,
-      });
+      addUser(formData);
     }
     
     onSave();
-  };
-
-  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData({ ...formData, branchIds: selectedBranches });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-lg font-medium mb-4">
-          {user ? 'Edit User' : 'New User'}
+          {user ? 'Editar Usuário' : 'Novo Usuário'}
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name*
+              Nome*
             </label>
             <input
               type="text"
@@ -78,7 +74,39 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              Senha{user ? '' : '*'}
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required={!user}
+                placeholder={user ? "Deixe em branco para manter a senha atual" : ""}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} className="text-gray-400 hover:text-gray-500" />
+                ) : (
+                  <Eye size={20} className="text-gray-400 hover:text-gray-500" />
+                )}
+              </button>
+            </div>
+            {!user && (
+              <p className="mt-1 text-xs text-gray-500">
+                A senha padrão inicial é "CRM@123"
+              </p>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Telefone
             </label>
             <input
               type="tel"
@@ -90,7 +118,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role*
+              Função*
             </label>
             <select
               value={formData.role}
@@ -122,12 +150,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Branches*
+              Filiais*
             </label>
             <select
               multiple
               value={formData.branchIds}
-              onChange={handleBranchChange}
+              onChange={(e) => {
+                const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+                setFormData({ ...formData, branchIds: selectedBranches });
+              }}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
             >
@@ -138,19 +169,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
               ))}
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              Hold Ctrl/Cmd to select multiple branches
+              Segure Ctrl/Cmd para selecionar múltiplas filiais
             </p>
           </div>
         </div>
-
-        {!user && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-600">
-              A default password will be generated based on the user's role (e.g., admin123, sales123).
-              The user should change this password on their first login.
-            </p>
-          </div>
-        )}
       </div>
       
       <div className="flex justify-end space-x-3">
@@ -159,13 +181,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           onClick={onCancel}
           className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
         >
-          Cancel
+          Cancelar
         </button>
         <button
           type="submit"
           className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
         >
-          {user ? 'Update User' : 'Create User'}
+          {user ? 'Atualizar Usuário' : 'Criar Usuário'}
         </button>
       </div>
     </form>
