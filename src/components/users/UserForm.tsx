@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole, UserStatus } from '../../types';
 import { useData } from '../../context/DataContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface UserFormProps {
   user?: User;
@@ -10,6 +11,7 @@ interface UserFormProps {
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
   const { branches, addUser, updateUser } = useData();
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -17,20 +19,26 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     role: user?.role || UserRole.SALESPERSON,
     status: user?.status || UserStatus.ACTIVE,
     branchIds: user?.branchIds || [],
-    password: '' // Only used for new users
+    branchId: '',
+    password: '' // New password field
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (user) {
-      updateUser(user.id, formData);
+      // Only update password if it was changed
+      const updates = {
+        ...formData,
+        password: formData.password ? formData.password : undefined
+      };
+      updateUser(user.id, updates);
     } else {
-      // For new users, generate a default password based on role
-      const defaultPassword = `${formData.role.toLowerCase()}123`;
+      // For new users, use the provided password or generate a default one
+      const password = formData.password || `${formData.role.toLowerCase()}123`;
       addUser({
         ...formData,
-        password: defaultPassword,
+        password
       });
     }
     
@@ -122,6 +130,33 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password {user ? '(leave blank to keep current)' : '*'}
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 pr-10"
+                placeholder={user ? "Enter new password" : "Enter password"}
+                {...(!user && { required: true })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} className="text-gray-400 hover:text-gray-500" />
+                ) : (
+                  <Eye size={20} className="text-gray-400 hover:text-gray-500" />
+                )}
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Branches*
             </label>
             <select
@@ -146,8 +181,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         {!user && (
           <div className="mt-4 p-4 bg-gray-50 rounded-md">
             <p className="text-sm text-gray-600">
-              A default password will be generated based on the user's role (e.g., admin123, sales123).
-              The user should change this password on their first login.
+              {formData.password ? 
+                "The user will use the specified password to log in." :
+                `A default password will be generated based on the user's role (e.g., admin123, sales123).
+                The user should change this password on their first login.`}
             </p>
           </div>
         )}
