@@ -23,11 +23,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     pass: '' // Password field
   });
 
-  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
-    setFormData({ ...formData, branchIds: selectedBranches });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -181,7 +176,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
             <select
               multiple
               value={formData.branchIds}
-              onChange={handleBranchChange}
+              onChange={(e) => {
+                const selectedBranches = Array.from(e.target.selectedOptions, option => option.value);
+                setFormData({ ...formData, branchIds: selectedBranches });
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[120px]"
             >
               {branches.map(branch => (
