@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase, handleError } from '../lib/supabase';
 import { Client, Branch, User, Deal, PipelineStatus, Phone, PhoneType, UserRole, CalendarEvent } from '../types';
-import { useAuth } from './AuthContext';
 
 interface DataContextType {
   clients: Client[];
@@ -340,108 +338,365 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const { user: authUser } = useAuth();
-  const [data, setData] = useState(() => generateMockData());
+  const [data, setData] = useState(() => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        return {
+          ...parsedData,
+          clients: (parsedData.clients || []).map((client: any) => ({
+            ...client,
+            createdAt: new Date(client.createdAt),
+            updatedAt: new Date(client.updatedAt),
+            observations: (client.observations || []).map((obs: any) => ({
+              ...obs,
+              createdAt: new Date(obs.createdAt),
+            })),
+          })),
+          deals: (parsedData.deals || []).map((deal: any) => ({
+            ...deal,
+            createdAt: new Date(deal.createdAt),
+            updatedAt: new Date(deal.updatedAt),
+            history: (deal.history || []).map((hist: any) => ({
+              ...hist,
+              changedAt: new Date(hist.changedAt),
+            })),
+          })),
+          branches: (parsedData.branches || []).map((branch: any) => ({
+            ...branch,
+            createdAt: new Date(branch.createdAt),
+            updatedAt: new Date(branch.updatedAt),
+          })),
+          users: (parsedData.users || []).map((user: any) => ({
+            ...user,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          })),
+          events: (parsedData.events || []).map((event: any) => ({
+            ...event,
+            createdAt: new Date(event.createdAt),
+            updatedAt: new Date(event.updatedAt),
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
+          })),
+          pipelineStatuses: parsedData.pipelineStatuses || []
+        };
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+    return generateMockData();
+  });
 
   useEffect(() => {
-    if (authUser) {
-      loadData();
-    }
-  }, [authUser]);
-
-  const loadData = async () => {
     try {
-      const { data: clients, error: clientsError } = await supabase
-        .from('clients')
-        .select('*');
-      if (clientsError) throw clientsError;
-
-      const { data: branches, error: branchesError } = await supabase
-        .from('branches')
-        .select('*');
-      if (branchesError) throw branchesError;
-
-      const { data: deals, error: dealsError } = await supabase
-        .from('deals')
-        .select('*');
-      if (dealsError) throw dealsError;
-
-      setData(prev => ({
-        ...prev,
-        clients: clients || [],
-        branches: branches || [],
-        deals: deals || [],
-      }));
+      localStorage.setItem('crm-data', JSON.stringify(data));
+      
+      // Broadcast data change to other tabs/windows
+      const event = new CustomEvent('crm-data-update', { detail: data });
+      window.dispatchEvent(event);
     } catch (error) {
-      handleError(error);
+      console.error('Error saving data:', error);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    // Listen for data changes from other tabs/windows
+    const handleDataUpdate = (event: CustomEvent) => {
+      if (event.detail && event.detail !== data) {
+        setData(event.detail);
+      }
+    };
+
+    window.addEventListener('crm-data-update', handleDataUpdate as EventListener);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'crm-data' && e.newValue) {
+        try {
+          const newData = JSON.parse(e.newValue);
+          setData(newData);
+        } catch (error) {
+          console.error('Error parsing storage data:', error);
+        }
+      }
+    });
+
+    return () => {
+      window.removeEventListener('crm-data-update', handleDataUpdate as EventListener);
+      window.removeEventListener('storage', handleDataUpdate as EventListener);
+    };
+  }, []);
+
+  const syncData = () => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setData(parsedData);
+      }
+    } catch (error) {
+      console.error('Error syncing data:', error);
     }
   };
 
-  const addClient = async (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert([client])
-        .select()
-        .single();
-      
-      if (error) throw error;
-
-      setData(prev => ({
-        ...prev,
-        clients: [...prev.clients, data],
-      }));
-    } catch (error) {
-      handleError(error);
-    }
+  const addEvent = (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): void => {
+    const now = new Date();
+    const newEvent: CalendarEvent = {
+      ...event,
+      id: `event-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setData(prev => ({
+      ...prev,
+      events: [...prev.events, newEvent],
+    }));
   };
 
-  const updateClient = async (id: string, updates: Partial<Client>) => {
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-
-      setData(prev => ({
-        ...prev,
-        clients: prev.clients.map(client =>
-          client.id === id ? { ...client, ...data } : client
-        ),
-      }));
-    } catch (error) {
-      handleError(error);
-    }
+  const updateEvent = (id: string, updates: Partial<CalendarEvent>): void => {
+    setData(prev => ({
+      ...prev,
+      events: prev.events.map(event =>
+        event.id === id
+          ? { ...event, ...updates, updatedAt: new Date() }
+          : event
+      ),
+    }));
   };
 
-  const deleteClient = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+  const deleteEvent = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      events: prev.events.filter(event => event.id !== id),
+    }));
+  };
 
-      setData(prev => ({
-        ...prev,
-        clients: prev.clients.filter(client => client.id !== id),
-      }));
-    } catch (error) {
-      handleError(error);
-    }
+  const addClient = (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): void => {
+    const now = new Date();
+    const newClient: Client = {
+      ...client,
+      id: `client-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setData(prev => ({
+      ...prev,
+      clients: [...prev.clients, newClient],
+    }));
+  };
+
+  const updateClient = (id: string, updates: Partial<Client>): void => {
+    setData(prev => ({
+      ...prev,
+      clients: prev.clients.map(client =>
+        client.id === id
+          ? { ...client, ...updates, updatedAt: new Date() }
+          : client
+      ),
+    }));
+  };
+
+  const deleteClient = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      clients: prev.clients.filter(client => client.id !== id),
+    }));
+  };
+
+  const getClientByPhone = (phoneNumber: string): Client | undefined => {
+    return data.clients.find(client =>
+      client.phones.some(phone =>
+        phone.number.replace(/\D/g, '') === phoneNumber.replace(/\D/g, '')
+      )
+    );
+  };
+
+  const addBranch = (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>): void => {
+    const now = new Date();
+    const newBranch: Branch = {
+      ...branch,
+      id: `branch-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setData(prev => ({
+      ...prev,
+      branches: [...prev.branches, newBranch],
+    }));
+  };
+
+  const updateBranch = (id: string, updates: Partial<Branch>): void => {
+    setData(prev => ({
+      ...prev,
+      branches: prev.branches.map(branch =>
+        branch.id === id
+          ? { ...branch, ...updates, updatedAt: new Date() }
+          : branch
+      ),
+    }));
+  };
+
+  const deleteBranch = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      branches: prev.branches.filter(branch => branch.id !== id),
+    }));
+  };
+
+  const addUser = (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): void => {
+    const now = new Date();
+    const newUser: User = {
+      ...user,
+      id: `user-${Date.now()}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setData(prev => ({
+      ...prev,
+      users: [...prev.users, newUser],
+    }));
+  };
+
+  const updateUser = (id: string, updates: Partial<User>): void => {
+    setData(prev => ({
+      ...prev,
+      users: prev.users.map(user =>
+        user.id === id
+          ? { ...user, ...updates, updatedAt: new Date() }
+          : user
+      ),
+    }));
+  };
+
+  const deleteUser = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      users: prev.users.filter(user => user.id !== id),
+    }));
+  };
+
+  const addDeal = (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>): void => {
+    const now = new Date();
+    const newDeal: Deal = {
+      ...deal,
+      id: `deal-${Date.now()}`,
+      history: [
+        {
+          id: `history-${Date.now()}`,
+          dealId: `deal-${Date.now()}`,
+          fromStatusId: '',
+          toStatusId: deal.statusId,
+          changedById: deal.ownerId,
+          changedAt: now,
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    };
+    setData(prev => ({
+      ...prev,
+      deals: [...prev.deals, newDeal],
+    }));
+  };
+
+  const updateDeal = (id: string, updates: Partial<Deal>): void => {
+    setData(prev => ({
+      ...prev,
+      deals: prev.deals.map(deal =>
+        deal.id === id
+          ? { ...deal, ...updates, updatedAt: new Date() }
+          : deal
+      ),
+    }));
+  };
+
+  const updateDealStatus = (id: string, newStatusId: string, userId: string, notes?: string): void => {
+    setData(prev => ({
+      ...prev,
+      deals: prev.deals.map(deal => {
+        if (deal.id === id) {
+          const now = new Date();
+          const newHistoryEntry = {
+            id: `history-${Date.now()}`,
+            dealId: id,
+            fromStatusId: deal.statusId,
+            toStatusId: newStatusId,
+            changedById: userId,
+            notes,
+            changedAt: now,
+          };
+          
+          return {
+            ...deal,
+            statusId: newStatusId,
+            history: [...deal.history, newHistoryEntry],
+            updatedAt: now,
+          };
+        }
+        return deal;
+      }),
+    }));
+  };
+
+  const deleteDeal = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      deals: prev.deals.filter(deal => deal.id !== id),
+    }));
+  };
+
+  const addPipelineStatus = (status: Omit<PipelineStatus, 'id'>): void => {
+    const newStatus: PipelineStatus = {
+      ...status,
+      id: `status-${Date.now()}`,
+    };
+    setData(prev => ({
+      ...prev,
+      pipelineStatuses: [...prev.pipelineStatuses, newStatus],
+    }));
+  };
+
+  const updatePipelineStatus = (id: string, updates: Partial<PipelineStatus>): void => {
+    setData(prev => ({
+      ...prev,
+      pipelineStatuses: prev.pipelineStatuses.map(status =>
+        status.id === id
+          ? { ...status, ...updates }
+          : status
+      ),
+    }));
+  };
+
+  const deletePipelineStatus = (id: string): void => {
+    setData(prev => ({
+      ...prev,
+      pipelineStatuses: prev.pipelineStatuses.filter(status => status.id !== id),
+    }));
   };
 
   const value = {
     ...data,
+    addEvent,
+    updateEvent,
+    deleteEvent,
     addClient,
     updateClient,
     deleteClient,
-    // ... other methods
+    getClientByPhone,
+    addBranch,
+    updateBranch,
+    deleteBranch,
+    addUser,
+    updateUser,
+    deleteUser,
+    addDeal,
+    updateDeal,
+    updateDealStatus,
+    deleteDeal,
+    addPipelineStatus,
+    updatePipelineStatus,
+    deletePipelineStatus,
+    syncData
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
