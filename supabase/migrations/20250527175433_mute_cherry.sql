@@ -1,16 +1,3 @@
-/*
-  # Add default users
-
-  This migration adds the default users that are used in the application:
-  - Admin user
-  - Director user
-  - Manager user
-  - Sales users
-  - Support user
-
-  All users are created with their respective roles and permissions.
-*/
-
 -- Insert default users
 INSERT INTO public.users (
   id,
@@ -26,7 +13,7 @@ INSERT INTO public.users (
 )
 VALUES
   (
-    'usr_admin_001',
+    gen_random_uuid(),
     'Admin User',
     'admin@example.com',
     '+5511999999999',
@@ -38,7 +25,7 @@ VALUES
     now()
   ),
   (
-    'usr_director_001',
+    gen_random_uuid(),
     'Director User',
     'director@example.com', 
     '+5511888888888',
@@ -50,7 +37,7 @@ VALUES
     now()
   ),
   (
-    'usr_manager_001',
+    gen_random_uuid(),
     'Manager User',
     'manager@example.com',
     '+5511777777777',
@@ -62,7 +49,7 @@ VALUES
     now()
   ),
   (
-    'usr_sales_001',
+    gen_random_uuid(),
     'Jonny Santos',
     'jonny@brestelecom.com.br',
     '+5511666666666',
@@ -74,7 +61,7 @@ VALUES
     now()
   ),
   (
-    'usr_support_001',
+    gen_random_uuid(),
     'Alex Support',
     'suporte@brestelecom.com.br',
     '+5511555555555',
@@ -86,7 +73,7 @@ VALUES
     now()
   ),
   (
-    'usr_sales_002',
+    gen_random_uuid(),
     'Rafael Sales',
     'contato@brestelecom.com.br',
     '+5511444444444',
