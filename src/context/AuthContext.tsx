@@ -24,51 +24,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!error && userData) {
-          setUser(userData as User);
-        }
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // First check if user exists and password matches
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .eq('password', password)
+        .single();
 
-      if (error) throw error;
-
-      if (data.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (userError) throw userError;
-        setUser(userData as User);
+      if (userError || !userData) {
+        throw new Error('Invalid email or password');
       }
+
+      // If successful, set the user
+      setUser(userData as User);
+      
     } catch (err) {
       setError((err as Error).message);
       throw err;
@@ -78,14 +53,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
     setUser(null);
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
+      // First verify current password
+      const { data: userData, error: verifyError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .eq('password', currentPassword)
+        .single();
+
+      if (verifyError || !userData) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // Update password
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ password: newPassword })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
     } catch (err) {
       throw new Error((err as Error).message);
     }
