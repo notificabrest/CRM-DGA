@@ -10,14 +10,18 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    try {
+      await login(email, password);
+    } catch (err) {
+      // Error is handled by the AuthContext
+    }
   };
 
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
       <div className="text-center">
         <h1 className="text-4xl font-extrabold text-orange-500">CRM-DGA</h1>
-        <p className="mt-2 text-gray-600">Customer Relationship Management</p>
+        <p className="mt-2 text-gray-600">Gestão de Relacionamento com o Cliente</p>
       </div>
       
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -25,10 +29,10 @@ const LoginForm: React.FC = () => {
           <div className="p-4 text-sm text-red-800 bg-red-100 rounded-md flex items-start gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium">Login failed</p>
+              <p className="font-medium">Falha no login</p>
               <p className="mt-1">{error}</p>
               <p className="mt-2">
-                If this is your first time logging in, your default password is: <span className="font-mono font-medium">CRM@123</span>
+                Se este é seu primeiro acesso, sua senha padrão é: <span className="font-mono font-medium">CRM@123</span>
               </p>
             </div>
           </div>
@@ -36,7 +40,7 @@ const LoginForm: React.FC = () => {
         
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email Address
+            Email
           </label>
           <input
             id="email"
@@ -52,7 +56,7 @@ const LoginForm: React.FC = () => {
 
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
+            Senha
           </label>
           <div className="relative mt-1">
             <input
@@ -77,29 +81,6 @@ const LoginForm: React.FC = () => {
               )}
             </button>
           </div>
-          <p className="mt-2 text-sm text-gray-500">
-            First time users: Your default password is <span className="font-mono font-medium">CRM@123</span>
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-            />
-            <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-700">
-              Remember me
-            </label>
-          </div>
-
-          <div className="text-sm">
-            <a href="#" className="font-medium text-orange-600 hover:text-orange-500">
-              Forgot your password?
-            </a>
-          </div>
         </div>
 
         <div>
@@ -108,8 +89,11 @@ const LoginForm: React.FC = () => {
             disabled={loading}
             className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-orange-500 border border-transparent rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
+          <p className="mt-2 text-sm text-center text-gray-500">
+            Primeiro acesso? Use a senha padrão: <span className="font-mono font-medium">CRM@123</span>
+          </p>
         </div>
       </form>
     </div>

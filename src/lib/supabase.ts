@@ -5,16 +5,14 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
     autoRefreshToken: true,
-  },
-  db: {
-    schema: 'public',
-  },
+    persistSession: true,
+    detectSessionInUrl: true
+  }
 });
 
 // Helper function to handle database errors
 export const handleError = (error: any) => {
   console.error('Database error:', error);
-  throw new Error(error.message || 'An error occurred while accessing the database');
+  throw new Error(error.message || 'An error occurred');
 };

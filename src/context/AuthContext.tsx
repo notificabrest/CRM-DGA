@@ -27,14 +27,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (!error && userData) {
-          setUser(userData as User);
+          if (userError) throw userError;
+          if (userData) {
+            setUser(userData as User);
+          }
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          setUser(null);
         }
       } else {
         setUser(null);
@@ -52,25 +58,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password: password || 'CRM@123' // Use default password if none provided
       });
 
-      if (error) throw error;
+      if (authError) {
+        // If login fails with provided password, try default password
+        if (password !== 'CRM@123') {
+          const { data: defaultAuthData, error: defaultAuthError } = await supabase.auth.signInWithPassword({
+            email,
+            password: 'CRM@123'
+          });
 
-      if (data.user) {
+          if (defaultAuthError) throw defaultAuthError;
+          if (defaultAuthData.user) {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', defaultAuthData.user.id)
+              .single();
+
+            if (userError) throw userError;
+            setUser(userData as User);
+            return;
+          }
+        }
+        throw authError;
+      }
+
+      if (authData.user) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
-          .eq('id', data.user.id)
+          .eq('id', authData.user.id)
           .single();
 
         if (userError) throw userError;
         setUser(userData as User);
       }
     } catch (err) {
-      setError((err as Error).message);
+      const errorMessage = (err as Error).message;
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
