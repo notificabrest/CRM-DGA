@@ -390,7 +390,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         name: branch.name,
         address: branch.address,
         phone: branch.phone,
-        manager_id: branch.managerId,
+        manager_id: branch.managerId || null, // Convert empty string to null
         status: branch.status
       });
 
@@ -403,7 +403,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       .from('branches')
       .update({
         ...updates,
-        manager_id: updates.managerId,
+        manager_id: updates.managerId || null, // Convert empty string to null
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
