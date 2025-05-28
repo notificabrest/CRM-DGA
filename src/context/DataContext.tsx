@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Client, Branch, User, Deal, PipelineStatus, Phone, PhoneType, UserRole, CalendarEvent } from '../types';
+import { supabase } from '../lib/supabase';
+import { Client, Branch, User, Deal, PipelineStatus, Phone, UserRole, CalendarEvent } from '../types';
 
 interface DataContextType {
   clients: Client[];
@@ -8,328 +9,28 @@ interface DataContextType {
   deals: Deal[];
   pipelineStatuses: PipelineStatus[];
   events: CalendarEvent[];
-  addEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateEvent: (id: string, updates: Partial<CalendarEvent>) => void;
-  deleteEvent: (id: string) => void;
-  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateClient: (id: string, updates: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
-  getClientByPhone: (phoneNumber: string) => Client | undefined;
-  addBranch: (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateBranch: (id: string, updates: Partial<Branch>) => void;
-  deleteBranch: (id: string) => void;
-  addUser: (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateUser: (id: string, updates: Partial<User>) => void;
-  deleteUser: (id: string) => void;
-  addDeal: (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>) => void;
-  updateDeal: (id: string, updates: Partial<Deal>) => void;
-  updateDealStatus: (id: string, newStatusId: string, userId: string, notes?: string) => void;
-  deleteDeal: (id: string) => void;
-  addPipelineStatus: (status: Omit<PipelineStatus, 'id'>) => void;
-  updatePipelineStatus: (id: string, updates: Partial<PipelineStatus>) => void;
-  deletePipelineStatus: (id: string) => void;
-  syncData: () => void;
+  addEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateEvent: (id: string, updates: Partial<CalendarEvent>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateClient: (id: string, updates: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
+  getClientByPhone: (phoneNumber: string) => Promise<Client | undefined>;
+  addBranch: (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateBranch: (id: string, updates: Partial<Branch>) => Promise<void>;
+  deleteBranch: (id: string) => Promise<void>;
+  addUser: (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateUser: (id: string, updates: Partial<User>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+  addDeal: (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateDeal: (id: string, updates: Partial<Deal>) => Promise<void>;
+  updateDealStatus: (id: string, newStatusId: string, userId: string, notes?: string) => Promise<void>;
+  deleteDeal: (id: string) => Promise<void>;
+  addPipelineStatus: (status: Omit<PipelineStatus, 'id'>) => Promise<void>;
+  updatePipelineStatus: (id: string, updates: Partial<PipelineStatus>) => Promise<void>;
+  deletePipelineStatus: (id: string) => Promise<void>;
+  syncData: () => Promise<void>;
 }
-
-const generateMockData = () => {
-  const branches: Branch[] = [
-    {
-      id: '1',
-      name: 'Headquarters',
-      address: 'Av. Paulista, 1000, São Paulo, SP',
-      phone: '+551130301000',
-      managerId: '3',
-      status: 'ACTIVE',
-      createdAt: new Date(2023, 0, 15),
-      updatedAt: new Date(2023, 0, 15),
-    },
-    {
-      id: '2',
-      name: 'Rio Branch',
-      address: 'Av. Atlântica, 500, Rio de Janeiro, RJ',
-      phone: '+552122223333',
-      managerId: undefined,
-      status: 'ACTIVE',
-      createdAt: new Date(2023, 2, 10),
-      updatedAt: new Date(2023, 2, 10),
-    },
-  ];
-
-  const users: User[] = [
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      phone: '+5511999999999',
-      role: UserRole.ADMIN,
-      status: 'ACTIVE',
-      branchIds: ['1'],
-      avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-      createdAt: new Date(2023, 0, 1),
-      updatedAt: new Date(2023, 0, 1),
-    },
-    {
-      id: '2',
-      name: 'Director User',
-      email: 'director@example.com',
-      phone: '+5511888888888',
-      role: UserRole.DIRECTOR,
-      status: 'ACTIVE',
-      branchIds: ['1', '2'],
-      avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
-      createdAt: new Date(2023, 0, 2),
-      updatedAt: new Date(2023, 0, 2),
-    },
-    {
-      id: '3',
-      name: 'Manager User',
-      email: 'manager@example.com',
-      phone: '+5511777777777',
-      role: UserRole.MANAGER,
-      status: 'ACTIVE',
-      branchIds: ['1'],
-      avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
-      createdAt: new Date(2023, 0, 3),
-      updatedAt: new Date(2023, 0, 3),
-    },
-    {
-      id: '4',
-      name: 'Sales User',
-      email: 'sales@example.com',
-      phone: '+5511666666666',
-      role: UserRole.SALESPERSON,
-      status: 'ACTIVE',
-      branchIds: ['1'],
-      avatar: 'https://randomuser.me/api/portraits/women/4.jpg',
-      createdAt: new Date(2023, 0, 4),
-      updatedAt: new Date(2023, 0, 4),
-    },
-  ];
-
-  const pipelineStatuses: PipelineStatus[] = [
-    {
-      id: '1',
-      name: 'New Lead',
-      color: '#3B82F6',
-      orderIndex: 0,
-      isDefault: true,
-    },
-    {
-      id: '2',
-      name: 'Initial Contact',
-      color: '#8B5CF6',
-      orderIndex: 1,
-      isDefault: true,
-    },
-    {
-      id: '3',
-      name: 'Qualification',
-      color: '#EC4899',
-      orderIndex: 2,
-      isDefault: true,
-    },
-    {
-      id: '4',
-      name: 'Proposal',
-      color: '#F97316',
-      orderIndex: 3,
-      isDefault: true,
-    },
-    {
-      id: '5',
-      name: 'Negotiation',
-      color: '#FBBF24',
-      orderIndex: 4,
-      isDefault: true,
-    },
-    {
-      id: '6',
-      name: 'Closed Won',
-      color: '#10B981',
-      orderIndex: 5,
-      isDefault: true,
-    },
-    {
-      id: '7',
-      name: 'Closed Lost',
-      color: '#EF4444',
-      orderIndex: 6,
-      isDefault: true,
-    },
-  ];
-
-  const clients: Client[] = [
-    {
-      id: '1',
-      name: 'João Silva',
-      email: 'joao.silva@example.com',
-      company: 'ABC Corporation',
-      position: 'CEO',
-      department: 'Executive',
-      phones: [
-        {
-          id: '1',
-          type: PhoneType.MAIN,
-          number: '+5511987654321',
-          isPrimary: true,
-        },
-        {
-          id: '2',
-          type: PhoneType.WHATSAPP,
-          number: '+5511987654321',
-          isPrimary: false,
-        },
-      ],
-      address: {
-        street: 'Rua das Flores',
-        number: '123',
-        complement: 'Apto 45',
-        neighborhood: 'Jardim Paulista',
-        city: 'São Paulo',
-        state: 'SP',
-        country: 'Brasil',
-        zipCode: '01452-000',
-      },
-      branchId: '1',
-      ownerId: '4',
-      status: 'ACTIVE',
-      tags: ['VIP', 'New'],
-      observations: [
-        {
-          id: '1',
-          userId: '4',
-          text: 'First contact made. Client is interested in our enterprise solution.',
-          createdAt: new Date(2023, 3, 15),
-        },
-      ],
-      customFields: {
-        preferredContact: 'Email',
-        industry: 'Technology',
-      },
-      createdAt: new Date(2023, 3, 10),
-      updatedAt: new Date(2023, 3, 10),
-    },
-    {
-      id: '2',
-      name: 'Maria Oliveira',
-      email: 'maria.oliveira@example.com',
-      company: 'XYZ Industries',
-      position: 'CTO',
-      department: 'Technology',
-      phones: [
-        {
-          id: '3',
-          type: PhoneType.MAIN,
-          number: '+5511976543210',
-          isPrimary: true,
-        },
-      ],
-      address: {
-        street: 'Av. Paulista',
-        number: '1000',
-        complement: 'Sala 1010',
-        neighborhood: 'Bela Vista',
-        city: 'São Paulo',
-        state: 'SP',
-        country: 'Brasil',
-        zipCode: '01310-000',
-      },
-      branchId: '1',
-      ownerId: '4',
-      status: 'ACTIVE',
-      tags: ['Enterprise'],
-      observations: [
-        {
-          id: '2',
-          userId: '4',
-          text: 'Client requested a demo of our premium features.',
-          createdAt: new Date(2023, 3, 20),
-        },
-      ],
-      customFields: {
-        preferredContact: 'Phone',
-        industry: 'Finance',
-      },
-      createdAt: new Date(2023, 3, 15),
-      updatedAt: new Date(2023, 3, 15),
-    },
-  ];
-
-  const deals: Deal[] = [
-    {
-      id: '1',
-      clientId: '1',
-      title: 'Enterprise License Agreement',
-      value: 100000,
-      probability: 0.7,
-      statusId: '4',
-      ownerId: '4',
-      history: [
-        {
-          id: '1',
-          dealId: '1',
-          fromStatusId: '1',
-          toStatusId: '2',
-          changedById: '4',
-          changedAt: new Date(2023, 3, 12),
-        },
-        {
-          id: '2',
-          dealId: '1',
-          fromStatusId: '2',
-          toStatusId: '3',
-          changedById: '4',
-          changedAt: new Date(2023, 3, 15),
-        },
-        {
-          id: '3',
-          dealId: '1',
-          fromStatusId: '3',
-          toStatusId: '4',
-          changedById: '4',
-          notes: 'Sent proposal for review',
-          changedAt: new Date(2023, 3, 20),
-        },
-      ],
-      createdAt: new Date(2023, 3, 10),
-      updatedAt: new Date(2023, 3, 20),
-    },
-    {
-      id: '2',
-      clientId: '2',
-      title: 'SaaS Subscription - Premium Tier',
-      value: 50000,
-      probability: 0.5,
-      statusId: '3',
-      ownerId: '4',
-      history: [
-        {
-          id: '4',
-          dealId: '2',
-          fromStatusId: '1',
-          toStatusId: '2',
-          changedById: '4',
-          changedAt: new Date(2023, 3, 16),
-        },
-        {
-          id: '5',
-          dealId: '2',
-          fromStatusId: '2',
-          toStatusId: '3',
-          changedById: '4',
-          notes: 'Scheduled product demo',
-          changedAt: new Date(2023, 3, 18),
-        },
-      ],
-      createdAt: new Date(2023, 3, 15),
-      updatedAt: new Date(2023, 3, 18),
-    },
-  ];
-
-  const events: CalendarEvent[] = [];
-
-  return { branches, users, pipelineStatuses, clients, deals, events };
-};
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -338,340 +39,555 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [data, setData] = useState(() => {
-    try {
-      const savedData = localStorage.getItem('crm-data');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        return {
-          ...parsedData,
-          clients: (parsedData.clients || []).map((client: any) => ({
-            ...client,
-            createdAt: new Date(client.createdAt),
-            updatedAt: new Date(client.updatedAt),
-            observations: (client.observations || []).map((obs: any) => ({
-              ...obs,
-              createdAt: new Date(obs.createdAt),
-            })),
-          })),
-          deals: (parsedData.deals || []).map((deal: any) => ({
-            ...deal,
-            createdAt: new Date(deal.createdAt),
-            updatedAt: new Date(deal.updatedAt),
-            history: (deal.history || []).map((hist: any) => ({
-              ...hist,
-              changedAt: new Date(hist.changedAt),
-            })),
-          })),
-          branches: (parsedData.branches || []).map((branch: any) => ({
-            ...branch,
-            createdAt: new Date(branch.createdAt),
-            updatedAt: new Date(branch.updatedAt),
-          })),
-          users: (parsedData.users || []).map((user: any) => ({
-            ...user,
-            createdAt: new Date(user.createdAt),
-            updatedAt: new Date(user.updatedAt),
-          })),
-          events: (parsedData.events || []).map((event: any) => ({
-            ...event,
-            createdAt: new Date(event.createdAt),
-            updatedAt: new Date(event.updatedAt),
-            startDate: new Date(event.startDate),
-            endDate: new Date(event.endDate),
-          })),
-          pipelineStatuses: parsedData.pipelineStatuses || []
-        };
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-    }
-    return generateMockData();
+  const [data, setData] = useState<{
+    clients: Client[];
+    branches: Branch[];
+    users: User[];
+    deals: Deal[];
+    pipelineStatuses: PipelineStatus[];
+    events: CalendarEvent[];
+  }>({
+    clients: [],
+    branches: [],
+    users: [],
+    deals: [],
+    pipelineStatuses: [],
+    events: []
   });
 
-  useEffect(() => {
+  const fetchAllData = async () => {
     try {
-      localStorage.setItem('crm-data', JSON.stringify(data));
-      
-      // Broadcast data change to other tabs/windows
-      const event = new CustomEvent('crm-data-update', { detail: data });
-      window.dispatchEvent(event);
+      // Fetch users
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('*');
+      if (usersError) throw usersError;
+
+      // Fetch branches
+      const { data: branchesData, error: branchesError } = await supabase
+        .from('branches')
+        .select('*');
+      if (branchesError) throw branchesError;
+
+      // Fetch pipeline statuses
+      const { data: statusesData, error: statusesError } = await supabase
+        .from('pipeline_statuses')
+        .select('*');
+      if (statusesError) throw statusesError;
+
+      // Fetch clients and their related data
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select(`
+          *,
+          phones:client_phones(*),
+          observations:client_observations(*)
+        `);
+      if (clientsError) throw clientsError;
+
+      // Fetch deals and their history
+      const { data: dealsData, error: dealsError } = await supabase
+        .from('deals')
+        .select(`
+          *,
+          history:deal_history(*)
+        `);
+      if (dealsError) throw dealsError;
+
+      // Fetch calendar events
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('calendar_events')
+        .select('*');
+      if (eventsError) throw eventsError;
+
+      // Transform data to match our types
+      const transformedData = {
+        users: usersData.map(user => ({
+          ...user,
+          createdAt: new Date(user.created_at),
+          updatedAt: new Date(user.updated_at),
+          branchIds: user.branch_ids || []
+        })),
+        branches: branchesData.map(branch => ({
+          ...branch,
+          createdAt: new Date(branch.created_at),
+          updatedAt: new Date(branch.updated_at),
+          managerId: branch.manager_id
+        })),
+        pipelineStatuses: statusesData.map(status => ({
+          ...status,
+          orderIndex: status.order_index,
+          isDefault: status.is_default
+        })),
+        clients: clientsData.map(client => ({
+          ...client,
+          createdAt: new Date(client.created_at),
+          updatedAt: new Date(client.updated_at),
+          branchId: client.branch_id,
+          ownerId: client.owner_id,
+          phones: client.phones.map(phone => ({
+            ...phone,
+            isPrimary: phone.is_primary
+          })),
+          observations: client.observations.map(obs => ({
+            ...obs,
+            createdAt: new Date(obs.created_at)
+          }))
+        })),
+        deals: dealsData.map(deal => ({
+          ...deal,
+          createdAt: new Date(deal.created_at),
+          updatedAt: new Date(deal.updated_at),
+          clientId: deal.client_id,
+          statusId: deal.status_id,
+          ownerId: deal.owner_id,
+          history: deal.history.map(hist => ({
+            ...hist,
+            dealId: hist.deal_id,
+            fromStatusId: hist.from_status_id,
+            toStatusId: hist.to_status_id,
+            changedById: hist.changed_by_id,
+            changedAt: new Date(hist.changed_at)
+          }))
+        })),
+        events: eventsData.map(event => ({
+          ...event,
+          createdAt: new Date(event.created_at),
+          updatedAt: new Date(event.updated_at),
+          startDate: new Date(event.start_date),
+          endDate: new Date(event.end_date),
+          allDay: event.all_day,
+          clientId: event.client_id,
+          dealId: event.deal_id,
+          ownerId: event.owner_id,
+          reminderMinutes: event.reminder_minutes
+        }))
+      };
+
+      setData(transformedData);
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error('Error fetching data:', error);
     }
-  }, [data]);
+  };
 
   useEffect(() => {
-    // Listen for data changes from other tabs/windows
-    const handleDataUpdate = (event: CustomEvent) => {
-      if (event.detail && event.detail !== data) {
-        setData(event.detail);
-      }
-    };
+    fetchAllData();
 
-    window.addEventListener('crm-data-update', handleDataUpdate as EventListener);
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'crm-data' && e.newValue) {
-        try {
-          const newData = JSON.parse(e.newValue);
-          setData(newData);
-        } catch (error) {
-          console.error('Error parsing storage data:', error);
-        }
-      }
-    });
+    // Subscribe to realtime changes
+    const clientsSubscription = supabase
+      .channel('clients-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+
+    const dealsSubscription = supabase
+      .channel('deals-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'deals' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
+
+    const eventsSubscription = supabase
+      .channel('events-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => {
+        fetchAllData();
+      })
+      .subscribe();
 
     return () => {
-      window.removeEventListener('crm-data-update', handleDataUpdate as EventListener);
-      window.removeEventListener('storage', handleDataUpdate as EventListener);
+      clientsSubscription.unsubscribe();
+      dealsSubscription.unsubscribe();
+      eventsSubscription.unsubscribe();
     };
   }, []);
 
-  const syncData = () => {
-    try {
-      const savedData = localStorage.getItem('crm-data');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        setData(parsedData);
-      }
-    } catch (error) {
-      console.error('Error syncing data:', error);
+  const addEvent = async (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const { error } = await supabase.from('calendar_events').insert({
+      title: event.title,
+      description: event.description,
+      type: event.type,
+      priority: event.priority,
+      status: event.status,
+      start_date: event.startDate.toISOString(),
+      end_date: event.endDate.toISOString(),
+      all_day: event.allDay,
+      location: event.location,
+      attendees: event.attendees,
+      client_id: event.clientId,
+      deal_id: event.dealId,
+      owner_id: event.ownerId,
+      reminder_minutes: event.reminderMinutes,
+      recurrence: event.recurrence
+    });
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const updateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const deleteEvent = async (id: string) => {
+    const { error } = await supabase
+      .from('calendar_events')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const addClient = async (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const { data: newClient, error: clientError } = await supabase
+      .from('clients')
+      .insert({
+        name: client.name,
+        email: client.email,
+        company: client.company,
+        position: client.position,
+        department: client.department,
+        branch_id: client.branchId,
+        owner_id: client.ownerId,
+        status: client.status,
+        tags: client.tags,
+        custom_fields: client.customFields
+      })
+      .select()
+      .single();
+
+    if (clientError) throw clientError;
+
+    // Add phones
+    for (const phone of client.phones) {
+      const { error: phoneError } = await supabase
+        .from('client_phones')
+        .insert({
+          client_id: newClient.id,
+          type: phone.type,
+          number: phone.number,
+          is_primary: phone.isPrimary
+        });
+
+      if (phoneError) throw phoneError;
     }
+
+    // Add observations
+    for (const observation of client.observations) {
+      const { error: obsError } = await supabase
+        .from('client_observations')
+        .insert({
+          client_id: newClient.id,
+          user_id: observation.userId,
+          text: observation.text
+        });
+
+      if (obsError) throw obsError;
+    }
+
+    await fetchAllData();
   };
 
-  const addEvent = (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): void => {
-    const now = new Date();
-    const newEvent: CalendarEvent = {
-      ...event,
-      id: `event-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setData(prev => ({
-      ...prev,
-      events: [...prev.events, newEvent],
-    }));
-  };
+  const updateClient = async (id: string, updates: Partial<Client>) => {
+    const { error: clientError } = await supabase
+      .from('clients')
+      .update({
+        name: updates.name,
+        email: updates.email,
+        company: updates.company,
+        position: updates.position,
+        department: updates.department,
+        branch_id: updates.branchId,
+        owner_id: updates.ownerId,
+        status: updates.status,
+        tags: updates.tags,
+        custom_fields: updates.customFields,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
 
-  const updateEvent = (id: string, updates: Partial<CalendarEvent>): void => {
-    setData(prev => ({
-      ...prev,
-      events: prev.events.map(event =>
-        event.id === id
-          ? { ...event, ...updates, updatedAt: new Date() }
-          : event
-      ),
-    }));
-  };
+    if (clientError) throw clientError;
 
-  const deleteEvent = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      events: prev.events.filter(event => event.id !== id),
-    }));
-  };
+    if (updates.phones) {
+      // Delete existing phones
+      await supabase
+        .from('client_phones')
+        .delete()
+        .eq('client_id', id);
 
-  const addClient = (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): void => {
-    const now = new Date();
-    const newClient: Client = {
-      ...client,
-      id: `client-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setData(prev => ({
-      ...prev,
-      clients: [...prev.clients, newClient],
-    }));
-  };
+      // Add new phones
+      for (const phone of updates.phones) {
+        await supabase
+          .from('client_phones')
+          .insert({
+            client_id: id,
+            type: phone.type,
+            number: phone.number,
+            is_primary: phone.isPrimary
+          });
+      }
+    }
 
-  const updateClient = (id: string, updates: Partial<Client>): void => {
-    setData(prev => ({
-      ...prev,
-      clients: prev.clients.map(client =>
-        client.id === id
-          ? { ...client, ...updates, updatedAt: new Date() }
-          : client
-      ),
-    }));
-  };
-
-  const deleteClient = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      clients: prev.clients.filter(client => client.id !== id),
-    }));
-  };
-
-  const getClientByPhone = (phoneNumber: string): Client | undefined => {
-    return data.clients.find(client =>
-      client.phones.some(phone =>
-        phone.number.replace(/\D/g, '') === phoneNumber.replace(/\D/g, '')
-      )
-    );
-  };
-
-  const addBranch = (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>): void => {
-    const now = new Date();
-    const newBranch: Branch = {
-      ...branch,
-      id: `branch-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setData(prev => ({
-      ...prev,
-      branches: [...prev.branches, newBranch],
-    }));
-  };
-
-  const updateBranch = (id: string, updates: Partial<Branch>): void => {
-    setData(prev => ({
-      ...prev,
-      branches: prev.branches.map(branch =>
-        branch.id === id
-          ? { ...branch, ...updates, updatedAt: new Date() }
-          : branch
-      ),
-    }));
-  };
-
-  const deleteBranch = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      branches: prev.branches.filter(branch => branch.id !== id),
-    }));
-  };
-
-  const addUser = (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): void => {
-    const now = new Date();
-    const newUser: User = {
-      ...user,
-      id: `user-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    setData(prev => ({
-      ...prev,
-      users: [...prev.users, newUser],
-    }));
-  };
-
-  const updateUser = (id: string, updates: Partial<User>): void => {
-    setData(prev => ({
-      ...prev,
-      users: prev.users.map(user =>
-        user.id === id
-          ? { ...user, ...updates, updatedAt: new Date() }
-          : user
-      ),
-    }));
-  };
-
-  const deleteUser = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      users: prev.users.filter(user => user.id !== id),
-    }));
-  };
-
-  const addDeal = (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>): void => {
-    const now = new Date();
-    const newDeal: Deal = {
-      ...deal,
-      id: `deal-${Date.now()}`,
-      history: [
-        {
-          id: `history-${Date.now()}`,
-          dealId: `deal-${Date.now()}`,
-          fromStatusId: '',
-          toStatusId: deal.statusId,
-          changedById: deal.ownerId,
-          changedAt: now,
-        },
-      ],
-      createdAt: now,
-      updatedAt: now,
-    };
-    setData(prev => ({
-      ...prev,
-      deals: [...prev.deals, newDeal],
-    }));
-  };
-
-  const updateDeal = (id: string, updates: Partial<Deal>): void => {
-    setData(prev => ({
-      ...prev,
-      deals: prev.deals.map(deal =>
-        deal.id === id
-          ? { ...deal, ...updates, updatedAt: new Date() }
-          : deal
-      ),
-    }));
-  };
-
-  const updateDealStatus = (id: string, newStatusId: string, userId: string, notes?: string): void => {
-    setData(prev => ({
-      ...prev,
-      deals: prev.deals.map(deal => {
-        if (deal.id === id) {
-          const now = new Date();
-          const newHistoryEntry = {
-            id: `history-${Date.now()}`,
-            dealId: id,
-            fromStatusId: deal.statusId,
-            toStatusId: newStatusId,
-            changedById: userId,
-            notes,
-            changedAt: now,
-          };
-          
-          return {
-            ...deal,
-            statusId: newStatusId,
-            history: [...deal.history, newHistoryEntry],
-            updatedAt: now,
-          };
+    if (updates.observations) {
+      // Add new observations (we don't update existing ones)
+      for (const observation of updates.observations) {
+        if (!observation.id) {
+          await supabase
+            .from('client_observations')
+            .insert({
+              client_id: id,
+              user_id: observation.userId,
+              text: observation.text
+            });
         }
-        return deal;
-      }),
-    }));
+      }
+    }
+
+    await fetchAllData();
   };
 
-  const deleteDeal = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      deals: prev.deals.filter(deal => deal.id !== id),
-    }));
+  const deleteClient = async (id: string) => {
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
   };
 
-  const addPipelineStatus = (status: Omit<PipelineStatus, 'id'>): void => {
-    const newStatus: PipelineStatus = {
-      ...status,
-      id: `status-${Date.now()}`,
-    };
-    setData(prev => ({
-      ...prev,
-      pipelineStatuses: [...prev.pipelineStatuses, newStatus],
-    }));
+  const getClientByPhone = async (phoneNumber: string): Promise<Client | undefined> => {
+    const { data, error } = await supabase
+      .from('client_phones')
+      .select('client_id')
+      .eq('number', phoneNumber)
+      .single();
+
+    if (error) return undefined;
+
+    if (data) {
+      const client = data.clients.find(c => c.id === data.client_id);
+      return client;
+    }
+
+    return undefined;
   };
 
-  const updatePipelineStatus = (id: string, updates: Partial<PipelineStatus>): void => {
-    setData(prev => ({
-      ...prev,
-      pipelineStatuses: prev.pipelineStatuses.map(status =>
-        status.id === id
-          ? { ...status, ...updates }
-          : status
-      ),
-    }));
+  const addBranch = async (branch: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const { error } = await supabase
+      .from('branches')
+      .insert({
+        name: branch.name,
+        address: branch.address,
+        phone: branch.phone,
+        manager_id: branch.managerId,
+        status: branch.status
+      });
+
+    if (error) throw error;
+    await fetchAllData();
   };
 
-  const deletePipelineStatus = (id: string): void => {
-    setData(prev => ({
-      ...prev,
-      pipelineStatuses: prev.pipelineStatuses.filter(status => status.id !== id),
-    }));
+  const updateBranch = async (id: string, updates: Partial<Branch>) => {
+    const { error } = await supabase
+      .from('branches')
+      .update({
+        ...updates,
+        manager_id: updates.managerId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const deleteBranch = async (id: string) => {
+    const { error } = await supabase
+      .from('branches')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const addUser = async (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        status: user.status,
+        phone: user.phone,
+        avatar: user.avatar,
+        branch_ids: user.branchIds
+      });
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const updateUser = async (id: string, updates: Partial<User>) => {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        ...updates,
+        branch_ids: updates.branchIds,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const deleteUser = async (id: string) => {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const addDeal = async (deal: Omit<Deal, 'id' | 'history' | 'createdAt' | 'updatedAt'>) => {
+    const { data: newDeal, error: dealError } = await supabase
+      .from('deals')
+      .insert({
+        client_id: deal.clientId,
+        title: deal.title,
+        value: deal.value,
+        probability: deal.probability,
+        status_id: deal.statusId,
+        owner_id: deal.ownerId
+      })
+      .select()
+      .single();
+
+    if (dealError) throw dealError;
+
+    // Add initial history entry
+    const { error: historyError } = await supabase
+      .from('deal_history')
+      .insert({
+        deal_id: newDeal.id,
+        from_status_id: null,
+        to_status_id: deal.statusId,
+        changed_by_id: deal.ownerId
+      });
+
+    if (historyError) throw historyError;
+    await fetchAllData();
+  };
+
+  const updateDeal = async (id: string, updates: Partial<Deal>) => {
+    const { error } = await supabase
+      .from('deals')
+      .update({
+        ...updates,
+        client_id: updates.clientId,
+        status_id: updates.statusId,
+        owner_id: updates.ownerId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const updateDealStatus = async (id: string, newStatusId: string, userId: string, notes?: string) => {
+    const deal = data.deals.find(d => d.id === id);
+    if (!deal) throw new Error('Deal not found');
+
+    const { error: dealError } = await supabase
+      .from('deals')
+      .update({
+        status_id: newStatusId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (dealError) throw dealError;
+
+    const { error: historyError } = await supabase
+      .from('deal_history')
+      .insert({
+        deal_id: id,
+        from_status_id: deal.statusId,
+        to_status_id: newStatusId,
+        changed_by_id: userId,
+        notes
+      });
+
+    if (historyError) throw historyError;
+    await fetchAllData();
+  };
+
+  const deleteDeal = async (id: string) => {
+    const { error } = await supabase
+      .from('deals')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const addPipelineStatus = async (status: Omit<PipelineStatus, 'id'>) => {
+    const { error } = await supabase
+      .from('pipeline_statuses')
+      .insert({
+        name: status.name,
+        color: status.color,
+        order_index: status.orderIndex,
+        is_default: status.isDefault
+      });
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const updatePipelineStatus = async (id: string, updates: Partial<PipelineStatus>) => {
+    const { error } = await supabase
+      .from('pipeline_statuses')
+      .update({
+        ...updates,
+        order_index: updates.orderIndex,
+        is_default: updates.isDefault,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const deletePipelineStatus = async (id: string) => {
+    const { error } = await supabase
+      .from('pipeline_statuses')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchAllData();
+  };
+
+  const syncData = async () => {
+    await fetchAllData();
   };
 
   const value = {
