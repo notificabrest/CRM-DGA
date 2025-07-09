@@ -420,14 +420,14 @@ const CalendarPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-        <div className="flex items-center space-x-4">
-          <div className="flex rounded-md shadow-sm">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Calendar</h1>
+        <div className="flex flex-col sm:flex-row items-end sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+          <div className="flex rounded-md shadow-sm text-sm">
             <button
               onClick={() => setView('month')}
-              className={`px-4 py-2 text-sm font-medium ${
+              className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium ${
                 view === 'month'
                   ? 'bg-orange-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -437,7 +437,7 @@ const CalendarPage: React.FC = () => {
             </button>
             <button
               onClick={() => setView('week')}
-              className={`px-4 py-2 text-sm font-medium ${
+              className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium ${
                 view === 'week'
                   ? 'bg-orange-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -447,7 +447,7 @@ const CalendarPage: React.FC = () => {
             </button>
             <button
               onClick={() => setView('day')}
-              className={`px-4 py-2 text-sm font-medium ${
+              className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium ${
                 view === 'day'
                   ? 'bg-orange-500 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -461,54 +461,54 @@ const CalendarPage: React.FC = () => {
               setSelectedEvent(null);
               setShowEventForm(true);
             }}
-            className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+            className="flex items-center px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 text-sm"
           >
-            <Plus size={18} className="mr-1" />
+            <Plus size={16} className="mr-1" />
             New Event
           </button>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={prevPeriod}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-1 sm:p-2 hover:bg-gray-100 rounded-full"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
             </button>
             <div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-lg sm:text-xl font-semibold">
                 {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
               </h2>
               {view === 'week' && (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   Week {getWeekNumber(currentDate)} of {currentDate.getFullYear()}
                 </p>
               )}
             </div>
             <button
               onClick={nextPeriod}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-1 sm:p-2 hover:bg-gray-100 rounded-full"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
           <button
             onClick={today}
-            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+            className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 rounded-md self-start sm:self-auto"
           >
             Today
           </button>
         </div>
 
         <div className="border-t border-gray-200">
-          <div className="grid grid-cols-7 gap-px bg-gray-200">
+          <div className="grid grid-cols-7 gap-px bg-gray-200 text-xs sm:text-sm">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div
                 key={day}
-                className="bg-gray-50 py-2 text-center text-sm font-medium text-gray-500"
+                className="bg-gray-50 py-1 sm:py-2 text-center font-medium text-gray-500"
               >
                 {day}
               </div>

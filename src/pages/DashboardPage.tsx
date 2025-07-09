@@ -137,10 +137,10 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <div className="text-sm text-gray-500">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div className="text-xs sm:text-sm text-gray-500">
           {new Date().toLocaleDateString('pt-BR', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -151,63 +151,63 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Greeting */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg shadow-md p-6 text-white">
-        <h2 className="text-xl font-semibold">Welcome back, {user?.name}!</h2>
-        <p className="mt-1 opacity-90">Here's what's happening today.</p>
+      <div className="bg-gradient-to-r from-orange-500 to-orange-400 rounded-lg shadow-md p-4 sm:p-6 text-white">
+        <h2 className="text-lg sm:text-xl font-semibold">Welcome back, {user?.name}!</h2>
+        <p className="mt-1 opacity-90 text-sm sm:text-base">Here's what's happening today.</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-blue-100 text-blue-600">
-              <Users size={20} />
+            <div className="rounded-full p-2 sm:p-3 bg-blue-100 text-blue-600">
+              <Users size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Active Clients</p>
-              <p className="text-2xl font-semibold text-gray-900">{activeClients}</p>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Active Clients</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{activeClients}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-orange-100 text-orange-600">
-              <CreditCard size={20} />
+            <div className="rounded-full p-2 sm:p-3 bg-orange-100 text-orange-600">
+              <CreditCard size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Deals</p>
-              <p className="text-2xl font-semibold text-gray-900">{totalDeals}</p>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Deals</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{totalDeals}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-green-100 text-green-600">
-              <TrendingUp size={20} />
+            <div className="rounded-full p-2 sm:p-3 bg-green-100 text-green-600">
+              <TrendingUp size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Revenue</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
-                  maximumFractionDigits: 0,
+                  notation: 'compact'
                 }).format(totalRevenue)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-purple-100 text-purple-600">
-              <UserCheck size={20} />
+            <div className="rounded-full p-2 sm:p-3 bg-purple-100 text-purple-600">
+              <UserCheck size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Conversion Rate</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
                 {conversionRate.toFixed(1)}%
               </p>
             </div>
@@ -216,9 +216,9 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Pipeline Chart */}
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <h3 className="text-lg font-medium mb-4">Deal Distribution</h3>
-        <div className="h-8 w-full bg-gray-200 rounded-md overflow-hidden flex">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+        <h3 className="text-base sm:text-lg font-medium mb-4">Deal Distribution</h3>
+        <div className="h-6 sm:h-8 w-full bg-gray-200 rounded-md overflow-hidden flex">
           {dealsByStatus.map(status => (
             <div 
               key={status.id}
@@ -231,14 +231,14 @@ const DashboardPage: React.FC = () => {
             ></div>
           ))}
         </div>
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {dealsByStatus.map(status => (
-            <div key={status.id} className="flex items-center">
+            <div key={status.id} className="flex items-center p-2 bg-gray-50 rounded">
               <div 
-                className="w-3 h-3 rounded-full mr-2"
+                className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
                 style={{ backgroundColor: status.color }}
               ></div>
-              <span className="text-sm text-gray-600">
+              <span className="text-xs sm:text-sm text-gray-600 truncate">
                 {status.name}: {status.count}
               </span>
             </div>
@@ -248,12 +248,12 @@ const DashboardPage: React.FC = () => {
 
       {/* Top Performers Section - Only visible to managers and above */}
       {(isDirectorOrAbove || isManager) && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-medium mb-4">Top Performers</h2>
-          <div className="space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-medium mb-4">Top Performers</h2>
+          <div className="space-y-3 sm:space-y-4">
             {getTopSalespeople().map(salesperson => (
               <div key={salesperson.id} className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                   {salesperson.avatar ? (
                     <img
                       src={salesperson.avatar}
@@ -261,25 +261,26 @@ const DashboardPage: React.FC = () => {
                       className="w-full h-full rounded-full"
                     />
                   ) : (
-                    <span className="text-sm font-medium">
+                    <span className="text-xs sm:text-sm font-medium">
                       {salesperson.name.substring(0, 2).toUpperCase()}
                     </span>
                   )}
                 </div>
-                <div className="ml-3 flex-1">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">
+                <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-medium text-gray-900 truncate block">
                         {salesperson.name}
                       </span>
-                      <span className="text-xs text-gray-500 ml-2">
+                      <span className="text-xs text-gray-500">
                         {salesperson.branch}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
-                        currency: 'BRL'
+                        currency: 'BRL',
+                        notation: 'compact'
                       }).format(salesperson.totalValue)}
                     </span>
                   </div>
@@ -299,10 +300,10 @@ const DashboardPage: React.FC = () => {
       )}
 
       {/* Recent Activity & Upcoming Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
-          <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <h3 className="text-base sm:text-lg font-medium mb-4">Recent Activity</h3>
+          <div className="space-y-3 sm:space-y-4">
             {filteredDeals
               .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
               .slice(0, 5)
@@ -312,11 +313,11 @@ const DashboardPage: React.FC = () => {
                 return (
                   <div key={deal.id} className="flex items-start">
                     <div 
-                      className="w-2 h-2 rounded-full mt-2 mr-3"
+                      className="w-2 h-2 rounded-full mt-2 mr-3 flex-shrink-0"
                       style={{ backgroundColor: status?.color }}
                     ></div>
-                    <div>
-                      <p className="text-sm font-medium">{deal.title}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{deal.title}</p>
                       <p className="text-xs text-gray-500">
                         {client?.name} • {status?.name} • 
                         {new Date(deal.updatedAt).toLocaleDateString('pt-BR')}
@@ -328,23 +329,23 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-medium mb-4">Upcoming Tasks</h3>
-          <div className="space-y-2">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <h3 className="text-base sm:text-lg font-medium mb-4">Upcoming Tasks</h3>
+          <div className="space-y-2 sm:space-y-3">
             {upcomingTasks.length > 0 ? (
               upcomingTasks.map(event => (
                 <div 
                   key={event.id} 
-                  className={`p-3 border rounded-md ${getEventTypeStyle(event.type)}`}
+                  className={`p-3 border rounded-md ${getEventTypeStyle(event.type)} text-sm`}
                 >
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">{event.title}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-white bg-opacity-50">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                    <span className="font-medium truncate">{event.title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-white bg-opacity-50 self-start">
                       {formatEventDate(event.startDate)}
                     </span>
                   </div>
                   {event.description && (
-                    <p className="text-xs mt-1 opacity-75">{event.description}</p>
+                    <p className="text-xs mt-1 opacity-75 line-clamp-2">{event.description}</p>
                   )}
                   <p className="text-xs mt-1">
                     {new Date(event.startDate).toLocaleTimeString('en-US', {
@@ -358,7 +359,7 @@ const DashboardPage: React.FC = () => {
               ))
             ) : (
               <div className="text-center py-4 text-gray-500">
-                No upcoming tasks
+                <p className="text-sm">No upcoming tasks</p>
               </div>
             )}
           </div>

@@ -71,14 +71,14 @@ const PipelinePage: React.FC = () => {
   const sortedStatuses = [...pipelineStatuses].sort((a, b) => a.orderIndex - b.orderIndex);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Sales Pipeline</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Sales Pipeline</h1>
         <button
           onClick={handleNewDeal}
-          className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+          className="flex items-center px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-sm sm:text-base"
         >
-          <Plus size={18} className="mr-1" />
+          <Plus size={16} className="mr-1 sm:w-5 sm:h-5" />
           New Deal
         </button>
       </div>
@@ -92,16 +92,16 @@ const PipelinePage: React.FC = () => {
       ) : (
         <>
           {/* Filters */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="w-full md:w-auto">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Branch
                 </label>
                 <select
                   value={filterBranch}
                   onChange={(e) => setFilterBranch(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                 >
                   <option value="all">All Branches</option>
                   {clients
@@ -119,14 +119,14 @@ const PipelinePage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="w-full md:w-auto">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Owner
                 </label>
                 <select
                   value={filterOwner}
                   onChange={(e) => setFilterOwner(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                 >
                   <option value="all">All Owners</option>
                   {users.map(user => (
@@ -137,14 +137,14 @@ const PipelinePage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="w-full md:w-auto">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   Deal Value
                 </label>
                 <select
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                 >
                   <option value="all">All Values</option>
                   <option value="low">Low (&lt; R$10k)</option>
@@ -155,41 +155,41 @@ const PipelinePage: React.FC = () => {
               
               <button
                 onClick={handleReset}
-                className="flex items-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 md:ml-auto"
+                className="flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
                 title="Reset filters"
               >
-                <RefreshCw size={18} className="text-gray-700 mr-1" />
+                <RefreshCw size={16} className="mr-1" />
                 <span>Reset</span>
               </button>
             </div>
           </div>
 
           {/* Pipeline Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center">
-                <div className="rounded-full p-2 bg-blue-100 text-blue-600">
-                  <Filter size={18} />
+                <div className="rounded-full p-2 bg-blue-100 text-blue-600 flex-shrink-0">
+                  <Filter size={16} className="sm:w-5 sm:h-5" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Total Deals</p>
-                  <p className="text-xl font-semibold text-gray-900">{filteredDeals.length}</p>
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500">Total Deals</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900">{filteredDeals.length}</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center">
-                <div className="rounded-full p-2 bg-green-100 text-green-600">
-                  <DollarSign size={18} />
+                <div className="rounded-full p-2 bg-green-100 text-green-600 flex-shrink-0">
+                  <DollarSign size={16} className="sm:w-5 sm:h-5" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Pipeline Value</p>
-                  <p className="text-xl font-semibold text-gray-900">
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500">Pipeline Value</p>
+                  <p className="text-sm sm:text-xl font-semibold text-gray-900">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
-                      maximumFractionDigits: 0,
+                      notation: 'compact'
                     }).format(
                       filteredDeals.reduce((total, deal) => total + deal.value, 0)
                     )}
@@ -198,18 +198,18 @@ const PipelinePage: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center">
-                <div className="rounded-full p-2 bg-orange-100 text-orange-600">
-                  <ArrowDownAZ size={18} />
+                <div className="rounded-full p-2 bg-orange-100 text-orange-600 flex-shrink-0">
+                  <ArrowDownAZ size={16} className="sm:w-5 sm:h-5" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Avg. Deal Size</p>
-                  <p className="text-xl font-semibold text-gray-900">
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500">Avg. Deal Size</p>
+                  <p className="text-sm sm:text-xl font-semibold text-gray-900">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
-                      maximumFractionDigits: 0,
+                      notation: 'compact'
                     }).format(
                       filteredDeals.length > 0
                         ? filteredDeals.reduce((total, deal) => total + deal.value, 0) / filteredDeals.length
@@ -220,14 +220,14 @@ const PipelinePage: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center">
-                <div className="rounded-full p-2 bg-purple-100 text-purple-600">
-                  <RefreshCw size={18} />
+                <div className="rounded-full p-2 bg-purple-100 text-purple-600 flex-shrink-0">
+                  <RefreshCw size={16} className="sm:w-5 sm:h-5" />
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
-                  <p className="text-xl font-semibold text-gray-900">
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-500">Conversion Rate</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900">
                     {filteredDeals.length > 0
                       ? Math.round(
                           (filteredDeals.filter(deal => deal.statusId === '6').length / filteredDeals.length) * 100
@@ -240,7 +240,7 @@ const PipelinePage: React.FC = () => {
           </div>
 
           {/* Pipeline */}
-          <div className="overflow-hidden">
+          <div className="overflow-x-auto">
             <DraggablePipeline 
               statuses={sortedStatuses} 
               deals={filteredDeals}

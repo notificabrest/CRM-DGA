@@ -200,28 +200,28 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
         <div className="flex items-center gap-3">
           {saveSuccess && (
-            <span className="text-sm text-green-600">Settings saved successfully!</span>
+            <span className="text-xs sm:text-sm text-green-600">Settings saved successfully!</span>
           )}
           <button
             onClick={handleSave}
-            className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+            className="flex items-center px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-sm"
           >
-            <Save size={18} className="mr-1" />
+            <Save size={16} className="mr-1" />
             Save Changes
           </button>
         </div>
       </div>
 
       <div className="border-b border-gray-200">
-        <nav className="flex -mb-px space-x-8">
+        <nav className="flex -mb-px space-x-2 sm:space-x-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab('general')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
               activeTab === 'general'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -231,7 +231,7 @@ const SettingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('appearance')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
               activeTab === 'appearance'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -241,7 +241,7 @@ const SettingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('pipeline')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
               activeTab === 'pipeline'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -251,7 +251,7 @@ const SettingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
               activeTab === 'users'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -261,7 +261,7 @@ const SettingsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('integrations')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
               activeTab === 'integrations'
                 ? 'border-orange-500 text-orange-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -273,20 +273,20 @@ const SettingsPage: React.FC = () => {
       </div>
 
       {activeTab === 'general' && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-medium mb-4">General Settings</h2>
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-base sm:text-lg font-medium mb-4">General Settings</h2>
           
-          <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Application Logo
               </label>
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 border border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
                   {logo ? (
                     <img src={logo} alt="Logo" className="max-w-full max-h-full object-contain" />
                   ) : (
-                    <span className="text-gray-400">No logo</span>
+                    <span className="text-gray-400 text-xs">No logo</span>
                   )}
                 </div>
                 <div>
@@ -299,90 +299,94 @@ const SettingsPage: React.FC = () => {
                   />
                   <label
                     htmlFor="logo-upload"
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer inline-block"
+                    className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer inline-block text-sm"
                   >
                     Upload Logo
                   </label>
                   {logo && (
                     <button
                       onClick={handleRemoveLogo}
-                      className="ml-2 text-sm text-red-600 hover:text-red-700"
+                      className="ml-2 text-xs sm:text-sm text-red-600 hover:text-red-700"
                     >
                       Remove
                     </button>
                   )}
                 </div>
               </div>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">
                 Recommended size: 200x200px. Max file size: 2MB
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Header Title
-              </label>
-              <input
-                type="text"
-                value={headerTitle}
-                onChange={(e) => setHeaderTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Header Title
+                </label>
+                <input
+                  type="text"
+                  value={headerTitle}
+                  onChange={(e) => setHeaderTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sidebar Title
-              </label>
-              <input
-                type="text"
-                value={sidebarTitle}
-                onChange={(e) => setSidebarTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Sidebar Title
+                </label>
+                <input
+                  type="text"
+                  value={sidebarTitle}
+                  onChange={(e) => setSidebarTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                />
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time Zone
-              </label>
-              <select
-                defaultValue="America/Sao_Paulo"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="America/Sao_Paulo">America/Sao_Paulo (GMT-3)</option>
-                <option value="America/New_York">America/New_York (GMT-5)</option>
-                <option value="Europe/London">Europe/London (GMT+0)</option>
-                <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Time Zone
+                </label>
+                <select
+                  defaultValue="America/Sao_Paulo"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                >
+                  <option value="America/Sao_Paulo">America/Sao_Paulo (GMT-3)</option>
+                  <option value="America/New_York">America/New_York (GMT-5)</option>
+                  <option value="Europe/London">Europe/London (GMT+0)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                </select>
+              </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date Format
-              </label>
-              <select
-                defaultValue="dd/MM/yyyy"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="dd/MM/yyyy">DD/MM/YYYY (31/12/2023)</option>
-                <option value="MM/dd/yyyy">MM/DD/YYYY (12/31/2023)</option>
-                <option value="yyyy-MM-dd">YYYY-MM-DD (2023-12-31)</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Date Format
+                </label>
+                <select
+                  defaultValue="dd/MM/yyyy"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                >
+                  <option value="dd/MM/yyyy">DD/MM/YYYY (31/12/2023)</option>
+                  <option value="MM/dd/yyyy">MM/DD/YYYY (12/31/2023)</option>
+                  <option value="yyyy-MM-dd">YYYY-MM-DD (2023-12-31)</option>
+                </select>
+              </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency
-              </label>
-              <select
-                defaultValue="BRL"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="BRL">Brazilian Real (R$)</option>
-                <option value="USD">US Dollar ($)</option>
-                <option value="EUR">Euro (€)</option>
-              </select>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  Currency
+                </label>
+                <select
+                  defaultValue="BRL"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                >
+                  <option value="BRL">Brazilian Real (R$)</option>
+                  <option value="USD">US Dollar ($)</option>
+                  <option value="EUR">Euro (€)</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

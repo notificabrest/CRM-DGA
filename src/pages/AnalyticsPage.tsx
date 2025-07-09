@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { TrendingUp, Users, CreditCard, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, CreditCard, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { UserRole } from '../types';
 
 const AnalyticsPage: React.FC = () => {
   const { deals, clients, users, pipelineStatuses } = useData();
   const [timeframe, setTimeframe] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Calculate key metrics
   const totalDeals = deals.length;
@@ -28,14 +29,18 @@ const AnalyticsPage: React.FC = () => {
     };
   });
 
+  const toggleSection = (section: string) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Analytics</h1>
         <select
           value={timeframe}
           onChange={(e) => setTimeframe(e.target.value as typeof timeframe)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
         >
           <option value="week">Last Week</option>
           <option value="month">Last Month</option>
@@ -45,44 +50,45 @@ const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-blue-100 text-blue-600">
-              <Users size={24} />
+            <div className="rounded-full p-2 sm:p-3 bg-blue-100 text-blue-600">
+              <Users size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Clients</p>
-              <p className="text-2xl font-semibold text-gray-900">{totalClients}</p>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Clients</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{totalClients}</p>
               <p className="text-xs text-gray-500 mt-1">+12% from last period</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-orange-100 text-orange-600">
-              <CreditCard size={24} />
+            <div className="rounded-full p-2 sm:p-3 bg-orange-100 text-orange-600">
+              <CreditCard size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Deals</p>
-              <p className="text-2xl font-semibold text-gray-900">{totalDeals}</p>
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Deals</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">{totalDeals}</p>
               <p className="text-xs text-gray-500 mt-1">+8% from last period</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-green-100 text-green-600">
-              <DollarSign size={24} />
+            <div className="rounded-full p-2 sm:p-3 bg-green-100 text-green-600">
+              <DollarSign size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Revenue</p>
+              <p className="text-lg sm:text-2xl font-semibold text-gray-900">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
-                  currency: 'BRL'
+                  currency: 'BRL',
+                  notation: 'compact'
                 }).format(totalRevenue)}
               </p>
               <p className="text-xs text-gray-500 mt-1">+15% from last period</p>
@@ -90,14 +96,14 @@ const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center">
-            <div className="rounded-full p-3 bg-purple-100 text-purple-600">
-              <TrendingUp size={24} />
+            <div className="rounded-full p-2 sm:p-3 bg-purple-100 text-purple-600">
+              <TrendingUp size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
-              <p className="text-2xl font-semibold text-gray-900">
+            <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Conversion Rate</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
                 {conversionRate.toFixed(1)}%
               </p>
               <p className="text-xs text-gray-500 mt-1">+3% from last period</p>
@@ -108,9 +114,17 @@ const AnalyticsPage: React.FC = () => {
 
       {/* Pipeline Analysis */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Pipeline Analysis</h2>
-          <div className="h-8 w-full bg-gray-200 rounded-md overflow-hidden flex">
+        <button
+          onClick={() => toggleSection('pipeline')}
+          className="w-full p-4 sm:p-6 flex items-center justify-between lg:cursor-default"
+        >
+          <h2 className="text-base sm:text-lg font-medium text-gray-900">Pipeline Analysis</h2>
+          <div className="lg:hidden">
+            {expandedSection === 'pipeline' || window.innerWidth >= 1024 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+          </div>
+        </button>
+        <div className={`${expandedSection === 'pipeline' || window.innerWidth >= 1024 ? 'block' : 'hidden'} lg:block px-4 sm:px-6 pb-4 sm:pb-6`}>
+          <div className="h-6 sm:h-8 w-full bg-gray-200 rounded-md overflow-hidden flex">
             {dealsByStatus.map(status => (
               <div
                 key={status.name}
@@ -123,25 +137,26 @@ const AnalyticsPage: React.FC = () => {
               ></div>
             ))}
           </div>
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {dealsByStatus.map(status => (
-              <div key={status.name} className="flex flex-col">
-                <div className="flex items-center mb-1">
+              <div key={status.name} className="flex flex-col p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center mb-2">
                   <div
                     className="w-3 h-3 rounded-full mr-2"
                     style={{ backgroundColor: status.color }}
                   ></div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 truncate">
                     {status.name}
                   </span>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                   {status.count} deals ({((status.count / totalDeals) * 100).toFixed(1)}%)
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
-                    currency: 'BRL'
+                    currency: 'BRL',
+                    notation: 'compact'
                   }).format(status.value)}
                 </div>
               </div>
@@ -151,17 +166,26 @@ const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Performance Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Deal Performance</h2>
-          <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('performance')}
+            className="w-full p-4 sm:p-6 flex items-center justify-between lg:cursor-default"
+          >
+            <h2 className="text-base sm:text-lg font-medium text-gray-900">Deal Performance</h2>
+            <div className="lg:hidden">
+              {expandedSection === 'performance' || window.innerWidth >= 1024 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+          </button>
+          <div className={`${expandedSection === 'performance' || window.innerWidth >= 1024 ? 'block' : 'hidden'} lg:block px-4 sm:px-6 pb-4 sm:pb-6 space-y-4`}>
             <div>
               <div className="flex justify-between text-sm text-gray-500 mb-1">
                 <span>Average Deal Size</span>
                 <span>
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
-                    currency: 'BRL'
+                    currency: 'BRL',
+                    notation: 'compact'
                   }).format(averageDealSize)}
                 </span>
               </div>
@@ -187,9 +211,17 @@ const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Top Performers</h2>
-          <div className="space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <button
+            onClick={() => toggleSection('topPerformers')}
+            className="w-full p-4 sm:p-6 flex items-center justify-between lg:cursor-default"
+          >
+            <h2 className="text-base sm:text-lg font-medium text-gray-900">Top Performers</h2>
+            <div className="lg:hidden">
+              {expandedSection === 'topPerformers' || window.innerWidth >= 1024 ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+          </button>
+          <div className={`${expandedSection === 'topPerformers' || window.innerWidth >= 1024 ? 'block' : 'hidden'} lg:block px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4`}>
             {users
               .filter(user => 
                 user.role === UserRole.SALESPERSON || 
@@ -205,7 +237,7 @@ const AnalyticsPage: React.FC = () => {
                 
                 return (
                   <div key={user.id} className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                       {user.avatar ? (
                         <img
                           src={user.avatar}
@@ -213,21 +245,22 @@ const AnalyticsPage: React.FC = () => {
                           className="w-full h-full rounded-full"
                         />
                       ) : (
-                        <span className="text-sm font-medium">
+                        <span className="text-xs sm:text-sm font-medium">
                           {user.name.substring(0, 2).toUpperCase()}
                         </span>
                       )}
                     </div>
-                    <div className="ml-3 flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-900">
+                    <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                        <span className="text-sm font-medium text-gray-900 truncate">
                           {user.name}
                         </span>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-500">
+                        <div className="text-left sm:text-right">
+                          <div className="text-xs sm:text-sm text-gray-500">
                             {new Intl.NumberFormat('pt-BR', {
                               style: 'currency',
-                              currency: 'BRL'
+                              currency: 'BRL',
+                              notation: 'compact'
                             }).format(userRevenue)}
                           </div>
                           <div className="text-xs text-gray-400">
@@ -247,46 +280,6 @@ const AnalyticsPage: React.FC = () => {
                   </div>
                 );
               })}
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Deal Performance</h2>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm text-gray-500 mb-1">
-                <span>Average Deal Size</span>
-                        <span className="text-sm text-gray-500">
-                          {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL'
-                          }).format(averageDealSize)}
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-200 rounded-full">
-                        <div
-                          className="h-2 bg-orange-500 rounded-full"
-                          style={{
-                            width: '65%'
-                          }}
-                        ></div>
-                      </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm text-gray-500 mb-1">
-                <span>Win Rate</span>
-                <span>{conversionRate.toFixed(1)}%</span>
-              </div>
-              <div className="h-2 bg-gray-200 rounded-full">
-                <div
-                  className="h-2 bg-green-500 rounded-full"
-                  style={{ width: `${conversionRate}%` }}
-                ></div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

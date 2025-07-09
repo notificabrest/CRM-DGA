@@ -120,14 +120,14 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mt-4 pb-8 overflow-x-auto">
+      <div className="flex gap-3 sm:gap-4 mt-4 pb-8 overflow-x-auto min-h-[400px]">
         {statuses.map(status => (
           <div
             key={status.id}
-            className="min-w-[280px] flex flex-col bg-gray-50 rounded-lg shadow-sm"
+            className="min-w-[250px] sm:min-w-[280px] flex flex-col bg-gray-50 rounded-lg shadow-sm"
           >
             <div
-              className="p-3 rounded-t-lg flex justify-between items-center"
+              className="p-2 sm:p-3 rounded-t-lg flex justify-between items-center"
               style={{ backgroundColor: `${status.color}20` }}
             >
               <div className="flex items-center">
@@ -135,11 +135,11 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: status.color }}
                 ></div>
-                <h3 className="font-medium ml-2" style={{ color: status.color }}>
+                <h3 className="font-medium ml-2 text-sm sm:text-base truncate" style={{ color: status.color }}>
                   {status.name}
                 </h3>
               </div>
-              <span className="text-sm text-gray-500 font-medium">
+              <span className="text-xs sm:text-sm text-gray-500 font-medium flex-shrink-0">
                 {getDealsForStatus(status.id).length}
               </span>
             </div>
@@ -148,7 +148,7 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="p-2 flex-1 min-h-[200px]"
+                  className="p-1 sm:p-2 flex-1 min-h-[200px]"
                 >
                   {getDealsForStatus(status.id).map((deal, index) => {
                     const client = clients.find(c => c.id === deal.clientId) || clients[0];
