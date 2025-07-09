@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile, toggleMobileSidebar }) => {
             } hover:bg-red-50 hover:text-red-600 mt-2 sm:mt-4 text-xs sm:text-sm font-medium border border-transparent hover:border-red-200`}
             style={{ color: currentTheme.textColor }}
           >
-            <LogOut size={16} className="flex-shrink-0 sm:w-5 sm:h-5" />
+            <LogOut size={12} className="flex-shrink-0 sm:w-5 sm:h-5" />
             {(!isCollapsed || isMobile) && <span className="ml-2 sm:ml-3 truncate">Sair</span>}
           </button>
         </div>
