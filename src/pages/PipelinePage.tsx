@@ -155,9 +155,9 @@ const PipelinePage: React.FC = () => {
                   className="w-full px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200"
                 >
                   <option value="all">Todos os Valores</option>
-                  <option value="low">Baixo (< R$10k)</option>
+                  <option value="low">Baixo (&lt; R$10k)</option>
                   <option value="medium">Médio (R$10k - R$50k)</option>
-                  <option value="high">Alto (> R$50k)</option>
+                  <option value="high">Alto (&gt; R$50k)</option>
                 </select>
               </div>
               
