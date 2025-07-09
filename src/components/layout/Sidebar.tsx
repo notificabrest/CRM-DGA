@@ -163,56 +163,56 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile, toggleMobileSidebar }) => {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+        <div className="p-3 sm:p-4 border-t border-gray-200 flex-shrink-0">
           {(!isCollapsed || isMobile) && user && (
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center min-w-0">
-                <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+            <div className="flex flex-col space-y-2 sm:space-y-4">
+              <div className="flex items-center min-w-0 p-2 rounded-lg hover:bg-gray-50">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
                   {user.avatar ? (
                     <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
                     <div 
-                      className="w-full h-full flex items-center justify-center text-white text-sm font-semibold"
+                      className="w-full h-full flex items-center justify-center text-white text-xs sm:text-sm font-semibold"
                       style={{ backgroundColor: currentTheme.primaryColor }}
                     >
                       {user.name.substring(0, 2).toUpperCase()}
                     </div>
                   )}
                 </div>
-                <div className="ml-3 min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-700 truncate">{user.name}</p>
+                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium text-gray-700 truncate">{user.name}</p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
               </div>
               
               <button
                 onClick={() => setShowChangePassword(true)}
-                className="flex items-center w-full p-2 rounded-md text-gray-700 hover:bg-gray-100 text-sm"
+                className="flex items-center w-full p-2 rounded-lg text-gray-700 hover:bg-gray-100 text-xs sm:text-sm transition-colors"
               >
-                <Key size={16} className="flex-shrink-0" />
-                <span className="ml-3 truncate">Change Password</span>
+                <Key size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
+                <span className="ml-2 sm:ml-3 truncate">Alterar Senha</span>
               </button>
             </div>
           )}
           
           <button
             onClick={handleLogout}
-            className={`flex items-center w-full p-2 rounded-md transition-colors ${
+            className={`flex items-center w-full p-3 rounded-lg transition-colors ${
               isCollapsed && !isMobile ? 'justify-center' : ''
-            } hover:bg-gray-100 mt-4 text-sm`}
+            } hover:bg-red-50 hover:text-red-600 mt-2 sm:mt-4 text-xs sm:text-sm font-medium border border-transparent hover:border-red-200`}
             style={{ color: currentTheme.textColor }}
           >
-            <LogOut size={20} className="flex-shrink-0" />
-            {(!isCollapsed || isMobile) && <span className="ml-3 truncate">Logout</span>}
+            <LogOut size={16} className="flex-shrink-0 sm:w-5 sm:h-5" />
+            {(!isCollapsed || isMobile) && <span className="ml-2 sm:ml-3 truncate">Sair</span>}
           </button>
         </div>
       </aside>
 
       {/* Change Password Modal */}
       {showChangePassword && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-medium mb-4">Change Password</h2>
+            <h2 className="text-lg font-medium mb-4">Alterar Senha</h2>
             <ChangePasswordForm
               onSuccess={() => setShowChangePassword(false)}
               onCancel={() => setShowChangePassword(false)}
