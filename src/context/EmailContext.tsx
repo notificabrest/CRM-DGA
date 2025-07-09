@@ -32,6 +32,19 @@ export const EmailProvider: React.FC<EmailProviderProps> = ({ children }) => {
   const [emailService, setEmailService] = useState<EmailService>(new EmailService(emailConfig));
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
+  // Make email context available globally for DataContext
+  useEffect(() => {
+    (window as any).__emailContext = {
+      sendPipelineNotification: async (notification: PipelineNotification) => {
+        return await emailService.sendPipelineNotification(notification);
+      }
+    };
+    
+    return () => {
+      delete (window as any).__emailContext;
+    };
+  }, [emailService]);
+
   useEffect(() => {
     try {
       localStorage.setItem('crm-email-config', JSON.stringify(emailConfig));

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Upload, Plus, Edit2, Trash2, Key, Palette, Globe, Users as UsersIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Save, RefreshCw, Upload, Plus, Edit2, Trash2, Key, Palette, Globe, Users as UsersIcon, Settings as SettingsIcon, Mail, Server, TestTube } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { PipelineStatus, UserRole, UserStatus } from '../types';
+import { useEmail } from '../context/EmailContext';
 
 const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
   const { pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus, addUser, updateUser, deleteUser, users, branches } = useData();
   const { hasPermission } = useAuth();
+  const { emailConfig, updateEmailConfig, testEmailConnection, isTestingConnection } = useEmail();
   
   const [selectedTheme, setSelectedTheme] = useState(currentTheme.name);
   const [customTheme, setCustomTheme] = useState({...currentTheme});
@@ -54,10 +56,34 @@ const SettingsPage: React.FC = () => {
     branchId: ''
   });
 
+  const [emailSettings, setEmailSettings] = useState({
+    notificationEmail: emailConfig.notificationEmail || '',
+    smtpHost: emailConfig.smtpHost || '',
+    smtpPort: emailConfig.smtpPort || 587,
+    smtpUser: emailConfig.smtpUser || '',
+    smtpPassword: emailConfig.smtpPassword || '',
+    smtpSecure: emailConfig.smtpSecure || true,
+    enabled: emailConfig.enabled || false
+  });
+
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
   useEffect(() => {
     setHeaderTitle(currentTheme.headerName || 'SISTEMA');
     setSidebarTitle(currentTheme.sidebarName || 'SISTEMA');
   }, [currentTheme]);
+
+  useEffect(() => {
+    setEmailSettings({
+      notificationEmail: emailConfig.notificationEmail || '',
+      smtpHost: emailConfig.smtpHost || '',
+      smtpPort: emailConfig.smtpPort || 587,
+      smtpUser: emailConfig.smtpUser || '',
+      smtpPassword: emailConfig.smtpPassword || '',
+      smtpSecure: emailConfig.smtpSecure || true,
+      enabled: emailConfig.enabled || false
+    });
+  }, [emailConfig]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -119,8 +145,31 @@ const SettingsPage: React.FC = () => {
     setHeaderName(headerTitle);
     setSidebarName(sidebarTitle);
     setLogo(logo);
+    updateEmailConfig(emailSettings);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
+  };
+
+  const handleTestEmailConnection = async () => {
+    setTestResult(null);
+    
+    // Update config before testing
+    updateEmailConfig(emailSettings);
+    
+    try {
+      const success = await testEmailConnection();
+      setTestResult({
+        success,
+        message: success 
+          ? 'Conexão SMTP testada com sucesso!' 
+          : 'Falha na conexão SMTP. Verifique as configurações.'
+      });
+    } catch (error) {
+      setTestResult({
+        success: false,
+        message: 'Erro ao testar conexão SMTP.'
+      });
+    }
   };
 
   const handleRemoveLogo = () => {
@@ -204,7 +253,8 @@ const SettingsPage: React.FC = () => {
     { id: 'appearance', label: 'Aparência', icon: Palette, color: 'from-purple-500 to-pink-600' },
     { id: 'pipeline', label: 'Pipeline', icon: RefreshCw, color: 'from-green-500 to-emerald-600' },
     { id: 'users', label: 'Usuários', icon: UsersIcon, color: 'from-orange-500 to-red-600' },
-    { id: 'integrations', label: 'Integrações', icon: Globe, color: 'from-cyan-500 to-blue-600' }
+    { id: 'integrations', label: 'Integrações', icon: Globe, color: 'from-cyan-500 to-blue-600' },
+    { id: 'notifications', label: 'Notificações', icon: Mail, color: 'from-pink-500 to-rose-600' }
   ];
 
   return (
@@ -720,6 +770,158 @@ const SettingsPage: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div className="space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Configurações de Notificação</h2>
+              
+              {/* Email Notifications */}
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 p-4 sm:p-6 rounded-xl border border-pink-200">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <Mail size={20} className="mr-2 text-pink-500" />
+                  Notificações por Email
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={emailSettings.enabled}
+                        onChange={(e) => setEmailSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                        className="form-checkbox h-5 w-5 text-pink-500 rounded focus:ring-pink-500"
+                      />
+                      <span className="ml-3 text-sm font-medium text-gray-700">Habilitar notificações por email</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1 ml-8">
+                      Receba emails quando houver movimentação no funil de vendas
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email para Notificações
+                    </label>
+                    <input
+                      type="email"
+                      value={emailSettings.notificationEmail}
+                      onChange={(e) => setEmailSettings(prev => ({ ...prev, notificationEmail: e.target.value }))}
+                      placeholder="email@exemplo.com"
+                      className="w-full px-4 py-3 border-2 border-pink-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-pink-500/20 focus:border-pink-500 text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email que receberá as notificações de movimentação do pipeline
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SMTP Configuration */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 rounded-xl border border-blue-200">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <Server size={20} className="mr-2 text-blue-500" />
+                  Configuração do Servidor SMTP
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Servidor SMTP
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSettings.smtpHost}
+                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpHost: e.target.value }))}
+                      placeholder="smtp.gmail.com"
+                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Porta
+                    </label>
+                    <input
+                      type="number"
+                      value={emailSettings.smtpPort}
+                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpPort: parseInt(e.target.value) }))}
+                      placeholder="587"
+                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Usuário SMTP
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSettings.smtpUser}
+                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpUser: e.target.value }))}
+                      placeholder="seu-email@gmail.com"
+                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Senha SMTP
+                    </label>
+                    <input
+                      type="password"
+                      value={emailSettings.smtpPassword}
+                      onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpPassword: e.target.value }))}
+                      placeholder="sua-senha-de-app"
+                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={emailSettings.smtpSecure}
+                        onChange={(e) => setEmailSettings(prev => ({ ...prev, smtpSecure: e.target.checked }))}
+                        className="form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm font-medium text-gray-700">Usar conexão segura (TLS/SSL)</span>
+                    </label>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <button
+                      onClick={handleTestEmailConnection}
+                      disabled={isTestingConnection}
+                      className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <TestTube size={16} className="mr-2" />
+                      {isTestingConnection ? 'Testando...' : 'Testar Conexão SMTP'}
+                    </button>
+                    
+                    {testResult && (
+                      <div className={`mt-3 p-3 rounded-lg ${
+                        testResult.success 
+                          ? 'bg-green-100 text-green-800 border border-green-200' 
+                          : 'bg-red-100 text-red-800 border border-red-200'
+                      }`}>
+                        <p className="text-sm font-medium">{testResult.message}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-100 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">📧 Configuração para Gmail:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Servidor: smtp.gmail.com</li>
+                    <li>• Porta: 587</li>
+                    <li>• Use uma senha de app (não sua senha normal)</li>
+                    <li>• Ative a verificação em 2 etapas no Gmail</li>
+                  </ul>
                 </div>
               </div>
             </div>
