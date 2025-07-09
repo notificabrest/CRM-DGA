@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart, PieChart, Download } from 'lucide-react';
+import { BarChart, PieChart, Download, TrendingUp, Users, DollarSign, Target, Award, Star } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 const ReportsPage: React.FC = () => {
@@ -17,217 +17,354 @@ const ReportsPage: React.FC = () => {
   // Deal distribution by status
   const dealsByStatus = pipelineStatuses.map(status => ({
     name: status.name,
+    color: status.color,
     count: deals.filter(deal => deal.statusId === status.id).length,
     value: deals
       .filter(deal => deal.statusId === status.id)
-      .reduce((sum, deal) => sum + deal.value, 0)
+      .reduce((sum, deal) => sum + deal.value, 0),
+    percentage: totalDeals > 0 ? ((deals.filter(deal => deal.statusId === status.id).length / totalDeals) * 100) : 0
   }));
 
+  // Sales performance data
+  const salesPerformance = users
+    .filter(user => 
+      user.role === 'SALESPERSON' || 
+      user.role === 'MANAGER' ||
+      user.role === 'DIRECTOR'
+    )
+    .map(user => {
+      const userDeals = deals.filter(deal => deal.ownerId === user.id);
+      const wonDeals = userDeals.filter(deal => deal.statusId === '6');
+      const userRevenue = wonDeals.reduce((sum, deal) => sum + deal.value, 0);
+      const userConversionRate = userDeals.length > 0 ? (wonDeals.length / userDeals.length) * 100 : 0;
+      
+      return {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+        totalDeals: userDeals.length,
+        wonDeals: wonDeals.length,
+        revenue: userRevenue,
+        conversionRate: userConversionRate
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'DIRECTOR':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'MANAGER':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'SALESPERSON':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getPerformanceLevel = (conversionRate: number) => {
+    if (conversionRate >= 80) return { label: 'Excelente', color: 'text-green-600', bg: 'bg-green-100' };
+    if (conversionRate >= 60) return { label: 'Bom', color: 'text-blue-600', bg: 'bg-blue-100' };
+    if (conversionRate >= 40) return { label: 'Regular', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+    return { label: 'Baixo', color: 'text-red-600', bg: 'bg-red-100' };
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <button
-          className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-        >
-          <Download size={18} className="mr-1" />
-          Export Report
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Relatórios de Vendas</h1>
+          <p className="text-gray-600 mt-1">Análise completa de performance e resultados</p>
+        </div>
+        <button className="flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 shadow-lg transform hover:scale-105 transition-all duration-200">
+          <Download size={20} className="mr-2" />
+          Exportar Relatório
         </button>
       </div>
 
       {/* Report Controls */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Report Type
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl shadow-sm border border-blue-100">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Tipo de Relatório
             </label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value as 'deals' | 'clients')}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
             >
-              <option value="deals">Deals Report</option>
-              <option value="clients">Clients Report</option>
+              <option value="deals">Relatório de Negócios</option>
+              <option value="clients">Relatório de Clientes</option>
             </select>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date Range
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Período
             </label>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as 'week' | 'month' | 'year')}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
             >
-              <option value="week">Last Week</option>
-              <option value="month">Last Month</option>
-              <option value="year">Last Year</option>
+              <option value="week">Última Semana</option>
+              <option value="month">Último Mês</option>
+              <option value="year">Último Ano</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 bg-blue-100 text-blue-600">
-              <BarChart size={18} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100 text-sm font-medium">Total de Negócios</p>
+              <p className="text-3xl font-bold mt-1">{totalDeals}</p>
+              <p className="text-blue-100 text-xs mt-1">+12% vs período anterior</p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Deals</p>
-              <p className="text-xl font-semibold text-gray-900">{totalDeals}</p>
+            <div className="bg-blue-400 bg-opacity-30 p-3 rounded-lg">
+              <BarChart size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 bg-green-100 text-green-600">
-              <PieChart size={18} />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Value</p>
-              <p className="text-xl font-semibold text-gray-900">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium">Valor Total</p>
+              <p className="text-2xl font-bold mt-1">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
-                  currency: 'BRL'
+                  currency: 'BRL',
+                  maximumFractionDigits: 0
                 }).format(totalValue)}
               </p>
+              <p className="text-green-100 text-xs mt-1">+18% vs período anterior</p>
+            </div>
+            <div className="bg-green-400 bg-opacity-30 p-3 rounded-lg">
+              <DollarSign size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 bg-orange-100 text-orange-600">
-              <BarChart size={18} />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Avg Deal Value</p>
-              <p className="text-xl font-semibold text-gray-900">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100 text-sm font-medium">Ticket Médio</p>
+              <p className="text-2xl font-bold mt-1">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
-                  currency: 'BRL'
+                  currency: 'BRL',
+                  maximumFractionDigits: 0
                 }).format(avgDealValue)}
               </p>
+              <p className="text-purple-100 text-xs mt-1">+5% vs período anterior</p>
+            </div>
+            <div className="bg-purple-400 bg-opacity-30 p-3 rounded-lg">
+              <TrendingUp size={24} />
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="rounded-full p-2 bg-purple-100 text-purple-600">
-              <PieChart size={18} />
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100 text-sm font-medium">Taxa de Conversão</p>
+              <p className="text-3xl font-bold mt-1">{conversionRate.toFixed(1)}%</p>
+              <p className="text-orange-100 text-xs mt-1">+3% vs período anterior</p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
-              <p className="text-xl font-semibold text-gray-900">
-                {conversionRate.toFixed(1)}%
-              </p>
+            <div className="bg-orange-400 bg-opacity-30 p-3 rounded-lg">
+              <Target size={24} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Report */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Sales Performance Report</h2>
-        </div>
-        
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Deal Distribution by Status */}
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-4">Deal Distribution by Status</h3>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Deals
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Value
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {dealsByStatus.map(status => (
-                    <tr key={status.name}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                        {status.name}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {status.count}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format(status.value)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Sales Performance by User */}
-            <div>
-              <h3 className="text-md font-medium text-gray-900 mb-4">Sales Performance by User</h3>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Salesperson
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Won Deals
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Revenue
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users
-                    .filter(user => 
-                      user.role === 'SALESPERSON' || 
-                      user.role === 'MANAGER' ||
-                      user.role === 'DIRECTOR'
-                    )
-                    .map(user => {
-                      const userDeals = deals.filter(deal => deal.ownerId === user.id);
-                      const wonDeals = userDeals.filter(deal => deal.statusId === '6');
-                      const userRevenue = wonDeals.reduce((sum, deal) => sum + deal.value, 0);
-                      
-                      return (
-                        <tr key={user.id}>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                            {user.name}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {wonDeals.length}
-                          </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL'
-                            }).format(userRevenue)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Deal Distribution by Status */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <PieChart className="mr-2 text-blue-600" size={20} />
+              Distribuição por Status
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {dealsByStatus.map(status => (
+                <div key={status.name} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-4 h-4 rounded-full mr-3"
+                      style={{ backgroundColor: status.color }}
+                    ></div>
+                    <div>
+                      <p className="font-medium text-gray-900">{status.name}</p>
+                      <p className="text-sm text-gray-500">{status.count} negócios</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        maximumFractionDigits: 0
+                      }).format(status.value)}
+                    </p>
+                    <p className="text-sm text-gray-500">{status.percentage.toFixed(1)}%</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
+
+        {/* Top Performers */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Award className="mr-2 text-yellow-600" size={20} />
+              Top Performers
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {salesPerformance.slice(0, 5).map((performer, index) => {
+                const performance = getPerformanceLevel(performer.conversionRate);
+                return (
+                  <div key={performer.id} className="flex items-center p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center mr-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                        index === 0 ? 'bg-yellow-500' : 
+                        index === 1 ? 'bg-gray-400' : 
+                        index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                      }`}>
+                        {index < 3 ? <Star size={16} /> : index + 1}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">{performer.name}</p>
+                          <div className="flex items-center mt-1">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleColor(performer.role)}`}>
+                              {performer.role}
+                            </span>
+                            <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${performance.bg} ${performance.color}`}>
+                              {performance.label}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-gray-900">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                              maximumFractionDigits: 0
+                            }).format(performer.revenue)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {performer.wonDeals}/{performer.totalDeals} deals ({performer.conversionRate.toFixed(1)}%)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Performance Table */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Users className="mr-2 text-green-600" size={20} />
+            Performance Detalhada por Vendedor
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Vendedor
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Função
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Total Deals
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Deals Fechados
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Taxa Conversão
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Receita Total
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Performance
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {salesPerformance.map((performer) => {
+                const performance = getPerformanceLevel(performer.conversionRate);
+                return (
+                  <tr key={performer.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
+                          {performer.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-semibold text-gray-900">{performer.name}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getRoleColor(performer.role)}`}>
+                        {performer.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {performer.totalDeals}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                      {performer.wonDeals}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {performer.conversionRate.toFixed(1)}%
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                        maximumFractionDigits: 0
+                      }).format(performer.revenue)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${performance.bg} ${performance.color}`}>
+                        {performance.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
