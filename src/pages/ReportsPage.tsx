@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { BarChart, PieChart, Download, TrendingUp, Users, DollarSign, Target, Award, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart, PieChart, Download, TrendingUp, Users, DollarSign, Target, Award, Star, ChevronDown, ChevronUp, FileText, FileSpreadsheet } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { exportToCSV, exportToPDF, formatReportData, formatSalesPerformanceData } from '../utils/exportUtils';
 
 const ReportsPage: React.FC = () => {
   const { deals, clients, users, pipelineStatuses } = useData();
@@ -76,6 +77,26 @@ const ReportsPage: React.FC = () => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
+  const handleExportCSV = () => {
+    if (reportType === 'deals') {
+      const formattedData = formatReportData(deals, clients, users, pipelineStatuses);
+      exportToCSV(formattedData, `relatorio-negocios-${dateRange}-${new Date().toISOString().split('T')[0]}`);
+    } else {
+      const formattedData = formatSalesPerformanceData(salesPerformance);
+      exportToCSV(formattedData, `relatorio-performance-${dateRange}-${new Date().toISOString().split('T')[0]}`);
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (reportType === 'deals') {
+      const formattedData = formatReportData(deals, clients, users, pipelineStatuses);
+      exportToPDF(formattedData, `relatorio-negocios-${dateRange}-${new Date().toISOString().split('T')[0]}`, 'Relatório de Negócios');
+    } else {
+      const formattedData = formatSalesPerformanceData(salesPerformance);
+      exportToPDF(formattedData, `relatorio-performance-${dateRange}-${new Date().toISOString().split('T')[0]}`, 'Relatório de Performance de Vendas');
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       {/* Header */}
@@ -84,10 +105,22 @@ const ReportsPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Relatórios de Vendas</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">Análise completa de performance e resultados</p>
         </div>
-        <button className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 shadow-lg transform hover:scale-105 transition-all duration-200 text-sm sm:text-base">
-          <Download size={18} className="mr-2" />
-          Exportar Relatório
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <button 
+            onClick={handleExportCSV}
+            className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-lg transform hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+          >
+            <FileSpreadsheet size={18} className="mr-2" />
+            Exportar CSV
+          </button>
+          <button 
+            onClick={handleExportPDF}
+            className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-lg transform hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+          >
+            <FileText size={18} className="mr-2" />
+            Exportar PDF
+          </button>
+        </div>
       </div>
 
       {/* Report Controls */}
