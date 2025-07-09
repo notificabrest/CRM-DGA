@@ -371,20 +371,6 @@ const generateMockData = () => {
       updatedAt: new Date(2023, 3, 25),
     },
   ];
-
-  return {
-    clients,
-    branches,
-    users,
-    deals,
-    pipelineStatuses,
-    events: []
-  };
-};
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
-
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState(() => {
     try {
       const savedData = localStorage.getItem('crm-data');
@@ -703,6 +689,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             changedBy: user.name,
             dealValue: updatedDeal.value,
             timestamp: new Date()
+          }
+        });
+        window.dispatchEvent(event);
+      }
+    }, 100);
           }
         });
         window.dispatchEvent(event);
