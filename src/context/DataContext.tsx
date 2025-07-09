@@ -709,20 +709,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   };
 
   const deleteDeal = (id: string): void => {
-          await sendEmailNotification({
-            dealTitle: deal.title,
-            clientName: client.name,
-            fromStatus: oldStatus.name,
-            toStatus: newStatus.name,
-            changedBy: user.name,
-            dealValue: deal.value,
-            timestamp: new Date()
-          });
-        }
-      } catch (error) {
-        console.error('Error sending pipeline notification:', error);
-      }
-    }, 500);
     setData(prev => ({
       ...prev,
       deals: prev.deals.filter(deal => deal.id !== id),
