@@ -69,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 fixed w-full top-0 z-10 shadow-sm">
+    <header className="bg-white border-b border-gray-200 fixed w-full top-0 z-10 shadow-sm no-select">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="flex items-center">
           <button
@@ -89,7 +89,7 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
               type="text"
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 select-text"
               style={{ 
                 '--tw-ring-color': currentTheme.primaryColor,
                 '--tw-ring-opacity': '0.5'

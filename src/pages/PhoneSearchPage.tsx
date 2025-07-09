@@ -214,11 +214,13 @@ const PhoneSearchPage: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-12 pr-12 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                className="w-full pl-12 pr-12 py-4 text-lg border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 select-text"
                 placeholder={`Buscar por ${searchType === 'all' ? 'qualquer campo' : 
                   searchType === 'phone' ? 'número de telefone' :
                   searchType === 'name' ? 'nome do cliente' :
                   searchType === 'email' ? 'email' : 'empresa'}...`}
+                inputMode={searchType === 'phone' ? 'tel' : 'text'}
+                autoComplete={searchType === 'phone' ? 'tel' : searchType === 'email' ? 'email' : 'off'}
               />
               {searchTerm && (
                 <button

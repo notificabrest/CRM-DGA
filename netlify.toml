@@ -1,6 +1,7 @@
 [build]
   publish = "dist"
   command = "npm run build"
+  environment = { NODE_VERSION = "18" }
 
 [[redirects]]
   from = "/*"
@@ -11,4 +12,3 @@
 [[headers]]
   for = "/*"
     [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"

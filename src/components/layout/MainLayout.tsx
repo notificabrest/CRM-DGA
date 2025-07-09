@@ -15,8 +15,22 @@ const MainLayout: React.FC = () => {
       }
     };
 
+    // Fix for iOS viewport height
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setVH();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
+    };
   }, []);
 
   const toggleMobileSidebar = () => {
@@ -24,13 +38,13 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 no-select" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
       {/* Sidebar for desktop */}
       {!isMobile && <Sidebar isMobile={false} />}
       
       {/* Mobile sidebar with overlay */}
       {isMobile && isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-20 flex">
+        <div className="fixed inset-0 z-20 flex" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
           <div 
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={toggleMobileSidebar}
@@ -41,7 +55,7 @@ const MainLayout: React.FC = () => {
       
       <div className="flex flex-col flex-1 md:ml-64">
         <Header toggleMobileSidebar={toggleMobileSidebar} />
-        <main className="flex-1 p-4 overflow-y-auto mt-16">
+        <main className="flex-1 p-4 overflow-y-auto mt-16 select-text">
           <Outlet />
         </main>
       </div>
