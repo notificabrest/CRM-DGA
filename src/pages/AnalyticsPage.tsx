@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Users, CreditCard, DollarSign } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { UserRole } from '../types';
 
 const AnalyticsPage: React.FC = () => {
   const { deals, clients, users, pipelineStatuses } = useData();
