@@ -371,6 +371,20 @@ const generateMockData = () => {
       updatedAt: new Date(2023, 3, 25),
     },
   ];
+
+  return {
+    clients,
+    branches,
+    users,
+    deals,
+    pipelineStatuses,
+    events: []
+  };
+};
+
+const DataContext = createContext<DataContextType | undefined>(undefined);
+
+export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState(() => {
     try {
       const savedData = localStorage.getItem('crm-data');
@@ -694,28 +708,9 @@ const generateMockData = () => {
         window.dispatchEvent(event);
       }
     }, 100);
-          }
-        });
-        window.dispatchEvent(event);
-      }
-    }, 100);
   };
 
   const deleteDeal = (id: string): void => {
-          await sendEmailNotification({
-            dealTitle: deal.title,
-            clientName: client.name,
-            fromStatus: oldStatus.name,
-            toStatus: newStatus.name,
-            changedBy: user.name,
-            dealValue: deal.value,
-            timestamp: new Date()
-          });
-        }
-      } catch (error) {
-        console.error('Error sending pipeline notification:', error);
-      }
-    }, 500);
     setData(prev => ({
       ...prev,
       deals: prev.deals.filter(deal => deal.id !== id),
