@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMobile, toggleMobileSidebar }) => {
       roles: [UserRole.ADMIN, UserRole.DIRECTOR, UserRole.MANAGER, UserRole.SALESPERSON, UserRole.ASSISTANT],
     },
     {
-      title: 'Search by Phone',
+      title: 'Search Inteligent',
       icon: <Phone size={20} />,
       path: '/phone-search',
       roles: [UserRole.ADMIN, UserRole.DIRECTOR, UserRole.MANAGER, UserRole.SALESPERSON, UserRole.ASSISTANT],
