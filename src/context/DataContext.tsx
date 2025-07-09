@@ -94,8 +94,8 @@ const generateMockData = () => {
     },
     {
       id: '4',
-      name: 'Sales User',
-      email: 'sales@example.com',
+      name: 'Jonny Santos',
+      email: 'jonny@brestelecom.com.br',
       phone: '+5511666666666',
       role: UserRole.SALESPERSON,
       status: 'ACTIVE',
@@ -103,6 +103,28 @@ const generateMockData = () => {
       avatar: 'https://randomuser.me/api/portraits/women/4.jpg',
       createdAt: new Date(2023, 0, 4),
       updatedAt: new Date(2023, 0, 4),
+    },
+    {
+      id: '5',
+      name: 'Alex Support',
+      email: 'suporte@brestelecom.com.br',
+      phone: '+5511555555555',
+      role: UserRole.ASSISTANT,
+      status: 'ACTIVE',
+      branchIds: ['1'],
+      createdAt: new Date(2023, 0, 5),
+      updatedAt: new Date(2023, 0, 5),
+    },
+    {
+      id: '6',
+      name: 'Alex Sales',
+      email: 'contato@brestelecom.com.br',
+      phone: '+5511444444444',
+      role: UserRole.SALESPERSON,
+      status: 'ACTIVE',
+      branchIds: ['1'],
+      createdAt: new Date(2023, 0, 6),
+      updatedAt: new Date(2023, 0, 6),
     },
   ];
 
@@ -262,7 +284,7 @@ const generateMockData = () => {
       title: 'Enterprise License Agreement',
       value: 100000,
       probability: 0.7,
-      statusId: '4',
+      statusId: '6', // Closed Won
       ownerId: '4',
       history: [
         {
@@ -300,8 +322,8 @@ const generateMockData = () => {
       title: 'SaaS Subscription - Premium Tier',
       value: 50000,
       probability: 0.5,
-      statusId: '3',
-      ownerId: '4',
+      statusId: '6', // Closed Won
+      ownerId: '6', // Alex Sales
       history: [
         {
           id: '4',
@@ -323,6 +345,28 @@ const generateMockData = () => {
       ],
       createdAt: new Date(2023, 3, 15),
       updatedAt: new Date(2023, 3, 18),
+    },
+    {
+      id: '3',
+      clientId: '1',
+      title: 'Consultoria em TI',
+      value: 25000,
+      probability: 0.8,
+      statusId: '6', // Closed Won
+      ownerId: '6', // Alex Sales
+      history: [
+        {
+          id: '6',
+          dealId: '3',
+          fromStatusId: '1',
+          toStatusId: '6',
+          changedById: '6',
+          notes: 'Deal fechado com sucesso',
+          changedAt: new Date(2023, 3, 25),
+        },
+      ],
+      createdAt: new Date(2023, 3, 20),
+      updatedAt: new Date(2023, 3, 25),
     },
   ];
 

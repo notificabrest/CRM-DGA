@@ -190,7 +190,11 @@ const AnalyticsPage: React.FC = () => {
           <h2 className="text-lg font-medium text-gray-900 mb-4">Top Performers</h2>
           <div className="space-y-4">
             {users
-              .filter(user => user.role === 'SALESPERSON')
+              .filter(user => 
+                user.role === UserRole.SALESPERSON || 
+                user.role === UserRole.MANAGER ||
+                user.role === UserRole.DIRECTOR
+              )
               .slice(0, 5)
               .map(user => {
                 const userDeals = deals.filter(deal => deal.ownerId === user.id);
@@ -218,18 +222,23 @@ const AnalyticsPage: React.FC = () => {
                         <span className="text-sm font-medium text-gray-900">
                           {user.name}
                         </span>
-                        <span className="text-sm text-gray-500">
-                          {new Intl.NumberFormat('pt-BR', {
-                            style: 'currency',
-                            currency: 'BRL'
-                          }).format(userRevenue)}
-                        </span>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(userRevenue)}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {userDeals.filter(deal => deal.statusId === '6').length} deals fechados
+                          </div>
+                        </div>
                       </div>
                       <div className="mt-1 h-1 bg-gray-200 rounded-full">
                         <div
                           className="h-1 bg-orange-500 rounded-full"
                           style={{
-                            width: `${(userRevenue / totalRevenue) * 100}%`
+                            width: `${totalRevenue > 0 ? (userRevenue / totalRevenue) * 100 : 0}%`
                           }}
                         ></div>
                       </div>
@@ -237,6 +246,46 @@ const AnalyticsPage: React.FC = () => {
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Deal Performance</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-sm text-gray-500 mb-1">
+                <span>Average Deal Size</span>
+                        <span className="text-sm text-gray-500">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL'
+                          }).format(averageDealSize)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full">
+                        <div
+                          className="h-2 bg-orange-500 rounded-full"
+                          style={{
+                            width: '65%'
+                          }}
+                        ></div>
+                      </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm text-gray-500 mb-1">
+                <span>Win Rate</span>
+                <span>{conversionRate.toFixed(1)}%</span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full">
+                <div
+                  className="h-2 bg-green-500 rounded-full"
+                  style={{ width: `${conversionRate}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

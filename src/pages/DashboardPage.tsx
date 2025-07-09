@@ -53,15 +53,15 @@ const DashboardPage: React.FC = () => {
   // Get top 5 salespeople
   const getTopSalespeople = () => {
     const salesData = users
-      .filter(u => u.role === UserRole.SALESPERSON)
+      .filter(u => 
+        u.role === UserRole.SALESPERSON || 
+        u.role === UserRole.MANAGER ||
+        u.role === UserRole.DIRECTOR
+      )
       .map(salesperson => {
-        const salesDeals = deals.filter(deal => {
+        const salesDeals = filteredDeals.filter(deal => {
           if (deal.ownerId !== salesperson.id) return false;
           
-          // For managers, only show salespeople from their branches
-          if (user?.role === UserRole.MANAGER) {
-            return user.branchIds.some(branchId => salesperson.branchIds.includes(branchId));
-          }
           return true;
         });
 
@@ -74,7 +74,7 @@ const DashboardPage: React.FC = () => {
           name: salesperson.name,
           avatar: salesperson.avatar,
           totalValue,
-          dealsCount: salesDeals.length,
+          dealsCount: salesDeals.filter(deal => deal.statusId === '6').length,
           branch: branches.find(b => salesperson.branchIds.includes(b.id))?.name
         };
       })

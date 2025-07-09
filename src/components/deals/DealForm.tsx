@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Deal, Client } from '../../types';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types';
 
 interface DealFormProps {
   deal?: Deal;
@@ -10,8 +11,16 @@ interface DealFormProps {
 }
 
 const DealForm: React.FC<DealFormProps> = ({ deal, onSave, onCancel }) => {
-  const { clients, pipelineStatuses, addDeal, updateDeal } = useData();
+  const { clients, pipelineStatuses, users, addDeal, updateDeal } = useData();
   const { user } = useAuth();
+
+  // Filter users to show only salespeople and managers
+  const salespeople = users.filter(u => 
+    u.role === UserRole.SALESPERSON || 
+    u.role === UserRole.MANAGER ||
+    u.role === UserRole.DIRECTOR ||
+    u.role === UserRole.ADMIN
+  );
 
   const [formData, setFormData] = useState<Partial<Deal>>(
     deal || {
@@ -71,6 +80,25 @@ const DealForm: React.FC<DealFormProps> = ({ deal, onSave, onCancel }) => {
               {clients.map(client => (
                 <option key={client.id} value={client.id}>
                   {client.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Salesperson*
+            </label>
+            <select
+              value={formData.ownerId || ''}
+              onChange={(e) => setFormData({ ...formData, ownerId: e.target.value })}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="">Select Salesperson</option>
+              {salespeople.map(salesperson => (
+                <option key={salesperson.id} value={salesperson.id}>
+                  {salesperson.name} ({salesperson.role})
                 </option>
               ))}
             </select>
