@@ -72,14 +72,21 @@ const PipelinePage: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Sales Pipeline</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Pipeline de Vendas
+          </h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
+            Gerencie seus negócios através do funil de vendas
+          </p>
+        </div>
         <button
           onClick={handleNewDeal}
-          className="flex items-center px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-sm sm:text-base"
+          className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-200 text-sm sm:text-base font-medium"
         >
-          <Plus size={16} className="mr-1 sm:w-5 sm:h-5" />
-          New Deal
+          <Plus size={16} className="mr-2" />
+          Novo Negócio
         </button>
       </div>
 
@@ -92,18 +99,19 @@ const PipelinePage: React.FC = () => {
       ) : (
         <>
           {/* Filters */}
-          <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-gradient-to-br from-white to-blue-50 p-4 sm:p-6 rounded-xl shadow-lg border border-blue-100">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Filtros</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Branch
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                  Filial
                 </label>
                 <select
                   value={filterBranch}
                   onChange={(e) => setFilterBranch(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  className="w-full px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200"
                 >
-                  <option value="all">All Branches</option>
+                  <option value="all">Todas as Filiais</option>
                   {clients
                     .reduce<string[]>((acc, client) => {
                       if (!acc.includes(client.branchId)) {
@@ -120,15 +128,15 @@ const PipelinePage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Owner
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                  Responsável
                 </label>
                 <select
                   value={filterOwner}
                   onChange={(e) => setFilterOwner(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  className="w-full px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200"
                 >
-                  <option value="all">All Owners</option>
+                  <option value="all">Todos os Responsáveis</option>
                   {users.map(user => (
                     <option key={user.id} value={user.id}>
                       {user.name}
@@ -138,54 +146,53 @@ const PipelinePage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                  Deal Value
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                  Valor do Negócio
                 </label>
                 <select
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                  className="w-full px-3 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all duration-200"
                 >
-                  <option value="all">All Values</option>
-                  <option value="low">Low (&lt; R$10k)</option>
-                  <option value="medium">Medium (R$10k - R$50k)</option>
-                  <option value="high">High (&gt; R$50k)</option>
+                  <option value="all">Todos os Valores</option>
+                  <option value="low">Baixo (< R$10k)</option>
+                  <option value="medium">Médio (R$10k - R$50k)</option>
+                  <option value="high">Alto (> R$50k)</option>
                 </select>
               </div>
               
-              <button
-                onClick={handleReset}
-                className="flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-                title="Reset filters"
-              >
-                <RefreshCw size={16} className="mr-1" />
-                <span>Reset</span>
-              </button>
+              <div className="flex items-end">
+                <button
+                  onClick={handleReset}
+                  className="w-full flex items-center justify-center px-3 py-2 sm:py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-200 text-sm font-medium"
+                  title="Limpar filtros"
+                >
+                  <RefreshCw size={14} className="mr-2" />
+                  <span>Limpar</span>
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Pipeline Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="rounded-full p-2 bg-blue-100 text-blue-600 flex-shrink-0">
-                  <Filter size={16} className="sm:w-5 sm:h-5" />
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 sm:p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-xs sm:text-sm font-medium">Total de Negócios</p>
+                  <p className="text-2xl sm:text-3xl font-bold mt-1">{filteredDeals.length}</p>
                 </div>
-                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500">Total Deals</p>
-                  <p className="text-lg sm:text-xl font-semibold text-gray-900">{filteredDeals.length}</p>
+                <div className="bg-blue-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+                  <Filter size={20} className="sm:w-6 sm:h-6" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="rounded-full p-2 bg-green-100 text-green-600 flex-shrink-0">
-                  <DollarSign size={16} className="sm:w-5 sm:h-5" />
-                </div>
-                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500">Pipeline Value</p>
-                  <p className="text-sm sm:text-xl font-semibold text-gray-900">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-4 sm:p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-xs sm:text-sm font-medium">Valor do Pipeline</p>
+                  <p className="text-xl sm:text-2xl font-bold mt-1">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -195,17 +202,17 @@ const PipelinePage: React.FC = () => {
                     )}
                   </p>
                 </div>
+                <div className="bg-green-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+                  <DollarSign size={20} className="sm:w-6 sm:h-6" />
+                </div>
               </div>
             </div>
             
-            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="rounded-full p-2 bg-orange-100 text-orange-600 flex-shrink-0">
-                  <ArrowDownAZ size={16} className="sm:w-5 sm:h-5" />
-                </div>
-                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500">Avg. Deal Size</p>
-                  <p className="text-sm sm:text-xl font-semibold text-gray-900">
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 sm:p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-xs sm:text-sm font-medium">Ticket Médio</p>
+                  <p className="text-xl sm:text-2xl font-bold mt-1">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -217,17 +224,17 @@ const PipelinePage: React.FC = () => {
                     )}
                   </p>
                 </div>
+                <div className="bg-orange-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+                  <ArrowDownAZ size={20} className="sm:w-6 sm:h-6" />
+                </div>
               </div>
             </div>
             
-            <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center">
-                <div className="rounded-full p-2 bg-purple-100 text-purple-600 flex-shrink-0">
-                  <RefreshCw size={16} className="sm:w-5 sm:h-5" />
-                </div>
-                <div className="ml-2 sm:ml-3 min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-500">Conversion Rate</p>
-                  <p className="text-lg sm:text-xl font-semibold text-gray-900">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-4 sm:p-6 rounded-xl text-white shadow-lg transform hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-xs sm:text-sm font-medium">Taxa de Conversão</p>
+                  <p className="text-2xl sm:text-3xl font-bold mt-1">
                     {filteredDeals.length > 0
                       ? Math.round(
                           (filteredDeals.filter(deal => deal.statusId === '6').length / filteredDeals.length) * 100
@@ -235,19 +242,32 @@ const PipelinePage: React.FC = () => {
                       : 0}%
                   </p>
                 </div>
+                <div className="bg-purple-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+                  <RefreshCw size={20} className="sm:w-6 sm:h-6" />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Pipeline */}
-          <div className="overflow-x-auto">
-            <DraggablePipeline 
-              statuses={sortedStatuses} 
-              deals={filteredDeals}
-              clients={clients}
-              users={users}
-              onEditDeal={handleEditDeal}
-            />
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                Funil de Vendas
+              </h3>
+              <p className="text-gray-600 text-sm mt-1">
+                Arraste os negócios entre as colunas para atualizar o status
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <DraggablePipeline 
+                statuses={sortedStatuses} 
+                deals={filteredDeals}
+                clients={clients}
+                users={users}
+                onEditDeal={handleEditDeal}
+              />
+            </div>
           </div>
         </>
       )}

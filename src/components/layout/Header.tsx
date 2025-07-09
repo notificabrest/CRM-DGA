@@ -70,56 +70,56 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
 
   return (
     <header className="bg-white border-b border-gray-200 fixed w-full top-0 z-10 shadow-sm no-select">
-      <div className="flex items-center justify-between h-16 px-4">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between h-16 px-3 sm:px-4">
+        <div className="flex items-center min-w-0 flex-1">
           <button
             onClick={toggleMobileSidebar}
             className="p-2 mr-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none md:hidden"
           >
             <Menu size={20} />
           </button>
-          <h1 className="text-xl font-bold mr-4" style={{ color: currentTheme.primaryColor }}>
+          <h1 className="text-lg sm:text-xl font-bold mr-2 sm:mr-4 truncate" style={{ color: currentTheme.primaryColor }}>
             {currentTheme.headerName}
           </h1>
-          <div className="relative w-64 md:w-96">
+          <div className="relative w-full max-w-xs sm:max-w-sm lg:max-w-md xl:max-w-lg">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search size={16} className="text-gray-400" />
+              <Search size={14} className="text-gray-400 sm:w-4 sm:h-4" />
             </div>
             <input
               type="text"
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 select-text"
+              className="w-full pl-8 sm:pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 select-text text-sm"
               style={{ 
                 '--tw-ring-color': currentTheme.primaryColor,
                 '--tw-ring-opacity': '0.5'
               } as React.CSSProperties}
-              placeholder="Search clients, deals, or phone numbers..."
+              placeholder="Buscar..."
             />
           </div>
         </div>
         
-        <div className="flex items-center">
-          <button className="p-2 mr-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md relative">
-            <Bell size={20} />
+        <div className="flex items-center ml-2 sm:ml-4">
+          <button className="p-2 mr-2 sm:mr-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md relative">
+            <Bell size={18} className="sm:w-5 sm:h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ backgroundColor: currentTheme.primaryColor }}></span>
           </button>
           
           {user && (
             <div className="flex items-center">
-              <div className="hidden md:block mr-4 text-right">
-                <p className="text-sm font-medium text-gray-700">{user.name}</p>
-                <div className="flex items-center">
+              <div className="hidden sm:block mr-3 text-right">
+                <p className="text-sm font-medium text-gray-700 truncate max-w-[120px]">{user.name}</p>
+                <div className="flex items-center justify-end">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(user.role)}`}>
                     {user.role}
                   </span>
                 </div>
               </div>
-              <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white text-sm" style={{ backgroundColor: currentTheme.primaryColor }}>
+                  <div className="w-full h-full flex items-center justify-center text-white text-sm font-semibold" style={{ backgroundColor: currentTheme.primaryColor }}>
                     {user.name.substring(0, 2).toUpperCase()}
                   </div>
                 )}

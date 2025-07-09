@@ -18,33 +18,38 @@ const DealCard: React.FC<DealCardProps> = ({ deal, client, owner, onEdit, onDele
 
   return (
     <div 
-      className="p-3 mb-2 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-200 relative group cursor-pointer"
+      className="p-2 sm:p-3 mb-2 bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 relative group cursor-pointer"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      onClick={() => setShowActions(!showActions)} // Toggle on mobile
     >
       <div className="flex justify-between items-start">
-        <h3 className="font-semibold text-gray-900 truncate text-sm">{deal.title}</h3>
-        {showActions && (
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onEdit(deal)}
-              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Edit2 size={12} />
-            </button>
-            <button
-              onClick={() => onDelete(deal.id)}
-              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <Trash2 size={12} />
-            </button>
-          </div>
-        )}
+        <h3 className="font-medium sm:font-semibold text-gray-900 truncate text-xs sm:text-sm pr-2">{deal.title}</h3>
+        <div className={`flex items-center space-x-1 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 sm:group-hover:opacity-100'}`}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(deal);
+            }}
+            className="p-1 sm:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+          >
+            <Edit2 size={10} className="sm:w-3 sm:h-3" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(deal.id);
+            }}
+            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+          >
+            <Trash2 size={10} className="sm:w-3 sm:h-3" />
+          </button>
+        </div>
       </div>
       <p className="text-xs text-gray-500 truncate mt-1">{client.name}</p>
-      <div className="flex justify-between items-center mt-3">
-        <div className="flex items-center">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 overflow-hidden flex-shrink-0">
+      <div className="flex justify-between items-center mt-2 sm:mt-3">
+        <div className="flex items-center min-w-0 flex-1">
+          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 overflow-hidden flex-shrink-0">
             {owner.avatar ? (
               <img src={owner.avatar} alt={owner.name} className="w-full h-full object-cover" />
             ) : (
@@ -55,8 +60,8 @@ const DealCard: React.FC<DealCardProps> = ({ deal, client, owner, onEdit, onDele
           </div>
           <span className="text-xs text-gray-500 ml-1 truncate">{owner.name}</span>
         </div>
-        <div className="text-right">
-          <span className="text-sm font-bold text-gray-900">
+        <div className="text-right ml-2 flex-shrink-0">
+          <span className="text-xs sm:text-sm font-bold text-gray-900 block">
             {new Intl.NumberFormat('pt-BR', {
               style: 'currency',
               currency: 'BRL',
@@ -113,7 +118,7 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
   };
 
   const handleDeleteDeal = (dealId: string) => {
-    if (window.confirm('Are you sure you want to delete this deal?')) {
+    if (window.confirm('Tem certeza que deseja excluir este negócio?')) {
       deleteDeal(dealId);
     }
   };
@@ -126,7 +131,7 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-3 sm:gap-4 mt-4 pb-8 overflow-x-auto min-h-[500px]">
+      <div className="flex gap-2 sm:gap-3 lg:gap-4 mt-4 pb-4 sm:pb-8 overflow-x-auto min-h-[400px] sm:min-h-[500px]">
         {statuses.map(status => {
           const statusDeals = getDealsForStatus(status.id);
           const totalValue = statusDeals.reduce((sum, deal) => sum + deal.value, 0);
@@ -134,26 +139,26 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
           return (
             <div
               key={status.id}
-              className="min-w-[280px] sm:min-w-[320px] flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 rounded-xl shadow-sm border border-gray-200"
+              className="min-w-[240px] sm:min-w-[280px] lg:min-w-[320px] flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg sm:rounded-xl shadow-sm border border-gray-200"
             >
               <div
-                className="p-4 rounded-t-xl flex justify-between items-center border-b border-gray-200"
+                className="p-3 sm:p-4 rounded-t-lg sm:rounded-t-xl flex justify-between items-center border-b border-gray-200"
                 style={{ 
                   background: `linear-gradient(135deg, ${status.color}15, ${status.color}25)`,
                   borderColor: `${status.color}30`
                 }}
               >
-                <div className="flex items-center">
+                <div className="flex items-center min-w-0 flex-1">
                   <div
-                    className="w-3 h-3 rounded-full shadow-sm"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm flex-shrink-0"
                     style={{ backgroundColor: status.color }}
                   ></div>
-                  <h3 className="font-semibold ml-3 text-sm truncate" style={{ color: status.color }}>
+                  <h3 className="font-medium sm:font-semibold ml-2 sm:ml-3 text-xs sm:text-sm truncate" style={{ color: status.color }}>
                     {status.name}
                   </h3>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-bold text-gray-700">
+                <div className="text-right ml-2 flex-shrink-0">
+                  <span className="text-xs sm:text-sm font-bold text-gray-700 block">
                     {statusDeals.length}
                   </span>
                   <div className="text-xs text-gray-500">
@@ -170,7 +175,7 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`p-3 flex-1 min-h-[400px] transition-colors duration-200 ${
+                    className={`p-2 sm:p-3 flex-1 min-h-[300px] sm:min-h-[400px] transition-colors duration-200 ${
                       snapshot.isDraggingOver 
                         ? 'bg-gradient-to-b from-blue-50 to-blue-100' 
                         : 'bg-transparent'
@@ -189,9 +194,15 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
                               {...provided.dragHandleProps}
                               className={`transform transition-all duration-200 ${
                                 snapshot.isDragging 
-                                  ? 'rotate-3 scale-105 shadow-xl' 
+                                  ? 'rotate-1 sm:rotate-3 scale-105 shadow-xl z-50' 
                                   : 'hover:scale-102'
                               }`}
+                              style={{
+                                ...provided.draggableProps.style,
+                                transform: snapshot.isDragging 
+                                  ? `${provided.draggableProps.style?.transform} rotate(3deg)` 
+                                  : provided.draggableProps.style?.transform
+                              }}
                             >
                               <DealCard
                                 deal={deal}
@@ -208,12 +219,13 @@ const DraggablePipeline: React.FC<DraggablePipelineProps> = ({
                     {provided.placeholder}
                     
                     {statusDeals.length === 0 && (
-                      <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+                      <div className="flex items-center justify-center h-24 sm:h-32 text-gray-400 text-xs sm:text-sm">
                         <div className="text-center">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 mx-auto mb-2 flex items-center justify-center">
-                            <Plus size={16} />
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 mx-auto mb-2 flex items-center justify-center">
+                            <Plus size={12} className="sm:w-4 sm:h-4" />
                           </div>
-                          Arraste negócios aqui
+                          <span className="hidden sm:block">Arraste negócios aqui</span>
+                          <span className="sm:hidden">Vazio</span>
                         </div>
                       </div>
                     )}

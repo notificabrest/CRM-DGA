@@ -38,7 +38,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 no-select" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
+    <div className="flex h-screen bg-gray-50 no-select overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
       {/* Sidebar for desktop */}
       {!isMobile && <Sidebar isMobile={false} />}
       
@@ -53,10 +53,12 @@ const MainLayout: React.FC = () => {
         </div>
       )}
       
-      <div className="flex flex-col flex-1 md:ml-64">
+      <div className="flex flex-col flex-1 md:ml-64 min-w-0">
         <Header toggleMobileSidebar={toggleMobileSidebar} />
-        <main className="flex-1 p-4 overflow-y-auto mt-16 select-text">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto mt-16 select-text">
+          <div className="min-h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
