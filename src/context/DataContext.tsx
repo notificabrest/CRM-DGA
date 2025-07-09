@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Client, Branch, User, Deal, PipelineStatus, Phone, PhoneType, UserRole, CalendarEvent } from '../types';
+import { useEmail } from './EmailContext';
 
 interface DataContextType {
   clients: Client[];
@@ -382,19 +383,6 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  // Note: We'll use a ref to avoid circular dependency issues
-  const emailContextRef = React.useRef<any>(null);
-  
-  // Get email context after component mounts
-  React.useEffect(() => {
-    try {
-      // This will be set by the EmailProvider
-      emailContextRef.current = (window as any).__emailContext;
-    } catch (error) {
-      // Email context not available yet
-    }
-  }, []);
-
   const [data, setData] = useState(() => {
     try {
       const savedData = localStorage.getItem('crm-data');
@@ -694,28 +682,47 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       }),
     }));
 
-    // Send email notification if enabled and all required data is available
-    const deal = data.deals.find(d => d.id === id);
-    const oldStatus = data.pipelineStatuses.find(s => s.id === deal?.statusId);
-    const newStatus = data.pipelineStatuses.find(s => s.id === newStatusId);
-    const client = data.clients.find(c => c.id === deal?.clientId);
-    const user = data.users.find(u => u.id === userId);
+    // Trigger email notification after state update
+    setTimeout(() => {
+      const updatedDeal = data.deals.find(d => d.id === id);
+      const oldStatus = data.pipelineStatuses.find(s => s.id === updatedDeal?.statusId);
+      const newStatus = data.pipelineStatuses.find(s => s.id === newStatusId);
+      const client = data.clients.find(c => c.id === updatedDeal?.clientId);
+      const user = data.users.find(u => u.id === userId);
 
-    if (emailContextRef.current && deal && oldStatus && newStatus && client && user) {
-      emailContextRef.current.sendPipelineNotification({
-        dealTitle: deal.title,
-        clientName: client.name,
-        fromStatus: oldStatus.name,
-        toStatus: newStatus.name,
-        userName: user.name,
-        timestamp: new Date()
-      }).catch(error => {
-        console.error('Failed to send pipeline notification:', error);
-      });
-    }
+      if (updatedDeal && oldStatus && newStatus && client && user) {
+        // Dispatch custom event for email notification
+        const event = new CustomEvent('pipeline-status-changed', {
+          detail: {
+            dealTitle: updatedDeal.title,
+            clientName: client.name,
+            fromStatus: oldStatus.name,
+            toStatus: newStatus.name,
+            changedBy: user.name,
+            dealValue: updatedDeal.value,
+            timestamp: new Date()
+          }
+        });
+        window.dispatchEvent(event);
+      }
+    }, 100);
   };
 
   const deleteDeal = (id: string): void => {
+          await sendEmailNotification({
+            dealTitle: deal.title,
+            clientName: client.name,
+            fromStatus: oldStatus.name,
+            toStatus: newStatus.name,
+            changedBy: user.name,
+            dealValue: deal.value,
+            timestamp: new Date()
+          });
+        }
+      } catch (error) {
+        console.error('Error sending pipeline notification:', error);
+      }
+    }, 500);
     setData(prev => ({
       ...prev,
       deals: prev.deals.filter(deal => deal.id !== id),
