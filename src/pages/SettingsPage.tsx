@@ -2,28 +2,32 @@ import React, { useState } from 'react';
 import { 
   Settings, Mail, Palette, Users, Shield, Bell, Globe, 
   Eye, EyeOff, TestTube, CheckCircle, XCircle, Loader,
-  User, Plus, Edit2, Trash2, Save, X, AlertTriangle
+  User, Plus, Edit2, Trash2, Save, X, AlertTriangle, Upload, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { useEmail } from '../context/EmailContext';
-import { User as UserType, UserRole, UserStatus } from '../types';
+import { User as UserType, UserRole, UserStatus, PipelineStatus } from '../types';
 import UserForm from '../components/users/UserForm';
 import VersionInfo from '../components/common/VersionInfo';
 
 const SettingsPage: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
-  const { users, addUser, updateUser, deleteUser } = useData();
+  const { users, addUser, updateUser, deleteUser, pipelineStatuses, addPipelineStatus, updatePipelineStatus, deletePipelineStatus } = useData();
   const { emailConfig, updateEmailConfig, testEmailConnection, isTestingConnection } = useEmail();
   
-  const [activeTab, setActiveTab] = useState<'general' | 'email' | 'theme' | 'users' | 'version'>('email');
+  const [activeTab, setActiveTab] = useState<'general' | 'appearance' | 'version' | 'pipeline' | 'users' | 'integrations' | 'notifications'>('general');
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | undefined>(undefined);
   const [testResult, setTestResult] = useState<any>(null);
   const [showTestResult, setShowTestResult] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Pipeline status management
+  const [newStatus, setNewStatus] = useState({ name: '', color: '#3B82F6' });
+  const [editingStatus, setEditingStatus] = useState<PipelineStatus | null>(null);
 
   // Theme customization state
   const [customTheme, setCustomTheme] = useState({
@@ -31,7 +35,7 @@ const SettingsPage: React.FC = () => {
     backgroundColor: currentTheme.backgroundColor,
     textColor: currentTheme.textColor,
     secondaryColor: currentTheme.secondaryColor,
-    headerName: currentTheme.headerName || 'CRM-DGA',
+    headerName: currentTheme.headerName || 'SISTEMA',
     sidebarName: currentTheme.sidebarName || 'CRM-DGA',
     logo: currentTheme.logo || '',
   });
@@ -87,6 +91,34 @@ const SettingsPage: React.FC = () => {
     setEditingUser(undefined);
   };
 
+  const handleAddPipelineStatus = () => {
+    if (newStatus.name.trim()) {
+      addPipelineStatus({
+        ...newStatus,
+        orderIndex: pipelineStatuses.length,
+        isDefault: false
+      });
+      setNewStatus({ name: '', color: '#3B82F6' });
+    }
+  };
+
+  const handleEditPipelineStatus = (status: PipelineStatus) => {
+    setEditingStatus(status);
+  };
+
+  const handleUpdatePipelineStatus = () => {
+    if (editingStatus) {
+      updatePipelineStatus(editingStatus.id, editingStatus);
+      setEditingStatus(null);
+    }
+  };
+
+  const handleDeletePipelineStatus = (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este status?')) {
+      deletePipelineStatus(id);
+    }
+  };
+
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case UserRole.ADMIN:
@@ -105,38 +137,41 @@ const SettingsPage: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'general', label: 'Geral', icon: Settings },
-    { id: 'theme', label: 'Aparência', icon: Palette },
-    { id: 'version', label: 'Versão', icon: Globe },
-    { id: 'email', label: 'Notificações', icon: Bell },
-    ...(hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) ? [{ id: 'users', label: 'Usuários', icon: Users }] : []),
+    { id: 'general', label: 'Geral', icon: Settings, color: 'bg-blue-500' },
+    { id: 'appearance', label: 'Aparência', icon: Palette, color: 'bg-purple-500' },
+    { id: 'version', label: 'Versão', icon: Globe, color: 'bg-gray-500' },
+    { id: 'pipeline', label: 'Pipeline', icon: RefreshCw, color: 'bg-green-500' },
+    ...(hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) ? [{ id: 'users', label: 'Usuários', icon: Users, color: 'bg-orange-500' }] : []),
+    { id: 'integrations', label: 'Integrações', icon: Shield, color: 'bg-cyan-500' },
+    { id: 'notifications', label: 'Notificações', icon: Bell, color: 'bg-pink-500' },
   ];
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configurações do Sistema</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">Configurações do Sistema</h1>
           <p className="text-gray-600 mt-1">Personalize e configure seu CRM</p>
         </div>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center">
+          <Save size={16} className="mr-2" />
           Salvar Alterações
         </button>
       </div>
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto">
+        <nav className="-mb-px flex space-x-1 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap flex items-center ${
+                className={`py-2 px-4 border-b-2 font-medium text-sm whitespace-nowrap flex items-center rounded-t-lg ${
                   activeTab === tab.id
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? `${tab.color} text-white border-transparent`
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-100'
                 }`}
               >
                 <Icon size={16} className="mr-2" />
@@ -151,53 +186,513 @@ const SettingsPage: React.FC = () => {
       <div className="mt-6">
         {activeTab === 'general' && (
           <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Configurações Gerais</h3>
+            
+            {/* Logo da Aplicação */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h4 className="font-medium mb-4">Logo da Aplicação</h4>
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                  {currentTheme.logo ? (
+                    <img src={currentTheme.logo} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                  ) : (
+                    <div className="text-gray-400 text-xs text-center">Logo</div>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <button className="px-4 py-2 bg-blue-500 text-white rounded text-sm flex items-center">
+                    <Upload size={14} className="mr-1" />
+                    Fazer Upload
+                  </button>
+                  <button className="px-4 py-2 text-red-500 border border-red-300 rounded text-sm">
+                    Remover
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Tamanho recomendado: 200x200px. Máximo: 2MB</p>
+            </div>
+
+            {/* Títulos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Título do Cabeçalho
+                </label>
+                <input
+                  type="text"
+                  value={customTheme.headerName}
+                  onChange={(e) => setCustomTheme({ ...customTheme, headerName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="SISTEMA"
+                />
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Título da Sidebar
+                </label>
+                <input
+                  type="text"
+                  value={customTheme.sidebarName}
+                  onChange={(e) => setCustomTheme({ ...customTheme, sidebarName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="CRM-DGA"
+                />
+              </div>
+            </div>
+
+            {/* Configurações de Data/Hora */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fuso Horário
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>America/São_Paulo (GMT-3)</option>
+                  <option>America/New_York (GMT-5)</option>
+                  <option>Europe/London (GMT+0)</option>
+                </select>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Formato de Data
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>DD/MM/YYYY (31/12/2023)</option>
+                  <option>MM/DD/YYYY (12/31/2023)</option>
+                  <option>YYYY-MM-DD (2023-12-31)</option>
+                </select>
+              </div>
+              
+              <div className="bg-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Moeda
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Real Brasileiro (R$)</option>
+                  <option>Dólar Americano ($)</option>
+                  <option>Euro (€)</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCustomThemeUpdate}
+              className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              Salvar Configurações Gerais
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'appearance' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Aparência</h3>
+            
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">Configurações Gerais</h3>
-              <div className="space-y-4">
+              <h4 className="text-lg font-medium mb-4">Seleção de Tema</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableThemes.map((theme) => (
+                  <div
+                    key={theme.name}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      currentTheme.name === theme.name
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleThemeChange(theme)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">{theme.name}</h4>
+                      <div
+                        className="w-6 h-6 rounded-full"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      ></div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      ></div>
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: theme.secondaryColor }}
+                      ></div>
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: theme.accentColor }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h4 className="text-lg font-medium mb-4">Tema Personalizado</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome do Sistema
+                    Cor Primária
+                  </label>
+                  <input
+                    type="color"
+                    value={customTheme.primaryColor}
+                    onChange={(e) => setCustomTheme({ ...customTheme, primaryColor: e.target.value })}
+                    className="w-full h-10 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cor Secundária
+                  </label>
+                  <input
+                    type="color"
+                    value={customTheme.secondaryColor}
+                    onChange={(e) => setCustomTheme({ ...customTheme, secondaryColor: e.target.value })}
+                    className="w-full h-10 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cor de Fundo
+                  </label>
+                  <input
+                    type="color"
+                    value={customTheme.backgroundColor}
+                    onChange={(e) => setCustomTheme({ ...customTheme, backgroundColor: e.target.value })}
+                    className="w-full h-10 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cor do Texto
+                  </label>
+                  <input
+                    type="color"
+                    value={customTheme.textColor}
+                    onChange={(e) => setCustomTheme({ ...customTheme, textColor: e.target.value })}
+                    className="w-full h-10 border border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleCustomThemeUpdate}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                Aplicar Tema Personalizado
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'version' && (
+          <div className="space-y-6">
+            <VersionInfo showDetailed={true} />
+          </div>
+        )}
+
+        {activeTab === 'pipeline' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Gerenciamento do Pipeline</h3>
+            
+            {/* Adicionar Status */}
+            <div className="bg-green-50 p-6 rounded-lg">
+              <h4 className="font-medium mb-4">Adicionar Status</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nome do Status
                   </label>
                   <input
                     type="text"
-                    value={customTheme.headerName}
-                    onChange={(e) => setCustomTheme({ ...customTheme, headerName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    value={newStatus.name}
+                    onChange={(e) => setNewStatus({ ...newStatus, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Ex: Novo Lead"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    URL do Logo
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cor
                   </label>
                   <input
-                    type="url"
-                    value={customTheme.logo}
-                    onChange={(e) => setCustomTheme({ ...customTheme, logo: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="https://example.com/logo.png"
+                    type="color"
+                    value={newStatus.color}
+                    onChange={(e) => setNewStatus({ ...newStatus, color: e.target.value })}
+                    className="w-full h-10 border border-gray-300 rounded-md"
                   />
                 </div>
                 <button
-                  onClick={handleCustomThemeUpdate}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                  onClick={handleAddPipelineStatus}
+                  className="px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 h-10"
                 >
-                  Salvar Alterações
+                  Adicionar
                 </button>
+              </div>
+            </div>
+
+            {/* Lista de Status */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h4 className="font-medium">Status Existentes</h4>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {pipelineStatuses.map((status) => (
+                  <div key={status.id} className="px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: status.color }}
+                      ></div>
+                      {editingStatus?.id === status.id ? (
+                        <input
+                          type="text"
+                          value={editingStatus.name}
+                          onChange={(e) => setEditingStatus({ ...editingStatus, name: e.target.value })}
+                          className="px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      ) : (
+                        <span className="font-medium">{status.name}</span>
+                      )}
+                      <span className="text-sm text-gray-500">#{status.color}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {editingStatus?.id === status.id ? (
+                        <>
+                          <button
+                            onClick={handleUpdatePipelineStatus}
+                            className="p-1 text-green-600 hover:text-green-800"
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                          <button
+                            onClick={() => setEditingStatus(null)}
+                            className="p-1 text-gray-600 hover:text-gray-800"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleEditPipelineStatus(status)}
+                            className="p-1 text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePipelineStatus(status.id)}
+                            className="p-1 text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {activeTab === 'email' && (
+        {activeTab === 'users' && hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) && (
           <div className="space-y-6">
-            {/* Configurações de Notificação */}
+            {showUserForm ? (
+              <UserForm 
+                user={editingUser}
+                onSave={handleUserFormClose}
+                onCancel={handleUserFormClose}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Usuários e Permissões</h3>
+                  <button
+                    onClick={handleNewUser}
+                    className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Adicionar Usuário
+                  </button>
+                </div>
+
+                {/* Email de Boas-vindas */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-center mb-2">
+                    <Mail size={16} className="mr-2 text-blue-600" />
+                    <span className="font-medium text-blue-800">Email de Boas-vindas</span>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    Quando um novo usuário for criado, ele receberá automaticamente um email com instruções de uso e credenciais de acesso.
+                  </p>
+                </div>
+
+                {/* Formulário de Usuário */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Nome completo"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Função</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                      <option>SALESPERSON</option>
+                      <option>MANAGER</option>
+                      <option>DIRECTOR</option>
+                      <option>ADMIN</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 mb-6">
+                  Adicionar Usuário
+                </button>
+
+                {/* Lista de Usuários */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="grid grid-cols-4 gap-4 text-sm font-medium text-gray-500 uppercase">
+                      <div>USUÁRIO</div>
+                      <div>EMAIL</div>
+                      <div>FUNÇÃO</div>
+                      <div>STATUS</div>
+                      <div>AÇÕES</div>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <div key={user.id} className="px-6 py-4">
+                        <div className="grid grid-cols-5 gap-4 items-center">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center text-white font-semibold text-sm mr-3">
+                              {user.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <span className="font-medium">{user.name}</span>
+                          </div>
+                          <div className="text-sm text-gray-600">{user.email}</div>
+                          <div>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleBadgeColor(user.role)}`}>
+                              {user.role}
+                            </span>
+                          </div>
+                          <div>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              user.status === UserStatus.ACTIVE
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {user.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="p-1 text-blue-600 hover:text-blue-800"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="p-1 text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'integrations' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Integrações</h3>
+            
+            <div className="bg-cyan-50 p-6 rounded-lg">
+              <h4 className="font-medium mb-4">Integração LDAP</h4>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="ldapEnabled"
+                  className="mr-3 w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                />
+                <label htmlFor="ldapEnabled" className="text-sm font-medium text-gray-700">
+                  Habilitar Autenticação LDAP
+                </label>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Permite autenticação através de servidor LDAP/Active Directory
+              </p>
+            </div>
+
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4 flex items-center">
+              <h4 className="font-medium mb-4">Outras Integrações</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h5 className="font-medium">Google Workspace</h5>
+                    <p className="text-sm text-gray-600">Sincronização com Gmail e Google Calendar</p>
+                  </div>
+                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Configurar
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h5 className="font-medium">Microsoft 365</h5>
+                    <p className="text-sm text-gray-600">Integração com Outlook e Teams</p>
+                  </div>
+                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Configurar
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h5 className="font-medium">WhatsApp Business</h5>
+                    <p className="text-sm text-gray-600">Envio de mensagens via WhatsApp</p>
+                  </div>
+                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    Configurar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium mb-4">Configurações de Notificação</h3>
+            
+            {/* Configurações de Notificação */}
+            <div className="bg-pink-50 p-6 rounded-lg border border-pink-200">
+              <h4 className="text-lg font-medium mb-4 flex items-center">
                 <Mail className="mr-2 text-pink-500" size={20} />
                 Notificações por Email
-              </h3>
+              </h4>
               
-              <div className="mb-6 p-4 bg-pink-50 rounded-lg border border-pink-200">
+              <div className="mb-6 p-4 bg-white rounded-lg border border-pink-200">
                 <div className="flex items-center mb-2">
                   <input
                     type="checkbox"
@@ -233,11 +728,11 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* Configuração do Servidor SMTP */}
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4 flex items-center">
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+              <h4 className="text-lg font-medium mb-4 flex items-center">
                 <Settings className="mr-2 text-blue-500" size={20} />
                 Configuração do Servidor SMTP
-              </h3>
+              </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
@@ -444,210 +939,6 @@ const SettingsPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === 'theme' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">Seleção de Tema</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableThemes.map((theme) => (
-                  <div
-                    key={theme.name}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      currentTheme.name === theme.name
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => handleThemeChange(theme)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{theme.name}</h4>
-                      <div
-                        className="w-6 h-6 rounded-full"
-                        style={{ backgroundColor: theme.primaryColor }}
-                      ></div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: theme.primaryColor }}
-                      ></div>
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: theme.secondaryColor }}
-                      ></div>
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: theme.accentColor }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">Tema Personalizado</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cor Primária
-                  </label>
-                  <input
-                    type="color"
-                    value={customTheme.primaryColor}
-                    onChange={(e) => setCustomTheme({ ...customTheme, primaryColor: e.target.value })}
-                    className="w-full h-10 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cor Secundária
-                  </label>
-                  <input
-                    type="color"
-                    value={customTheme.secondaryColor}
-                    onChange={(e) => setCustomTheme({ ...customTheme, secondaryColor: e.target.value })}
-                    className="w-full h-10 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cor de Fundo
-                  </label>
-                  <input
-                    type="color"
-                    value={customTheme.backgroundColor}
-                    onChange={(e) => setCustomTheme({ ...customTheme, backgroundColor: e.target.value })}
-                    className="w-full h-10 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cor do Texto
-                  </label>
-                  <input
-                    type="color"
-                    value={customTheme.textColor}
-                    onChange={(e) => setCustomTheme({ ...customTheme, textColor: e.target.value })}
-                    className="w-full h-10 border border-gray-300 rounded-md"
-                  />
-                </div>
-              </div>
-              <button
-                onClick={handleCustomThemeUpdate}
-                className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-              >
-                Aplicar Tema Personalizado
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'users' && hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) && (
-          <div className="space-y-6">
-            {showUserForm ? (
-              <UserForm 
-                user={editingUser}
-                onSave={handleUserFormClose}
-                onCancel={handleUserFormClose}
-              />
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Gerenciamento de Usuários</h3>
-                  <button
-                    onClick={handleNewUser}
-                    className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Novo Usuário
-                  </button>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Usuário
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Função
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ações
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map((user) => (
-                          <tr key={user.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden">
-                                  {user.avatar ? (
-                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white font-semibold bg-orange-500">
-                                      {user.name.substring(0, 2).toUpperCase()}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                  <div className="text-sm text-gray-500">{user.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getRoleBadgeColor(user.role)}`}>
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                user.status === UserStatus.ACTIVE
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <button
-                                onClick={() => handleEditUser(user)}
-                                className="text-blue-600 hover:text-blue-900 mr-3"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'version' && (
-          <div className="space-y-6">
-            <VersionInfo showDetailed={true} />
           </div>
         )}
       </div>
