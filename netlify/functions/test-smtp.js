@@ -1,9 +1,12 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
-  console.log('🚀 SMTP Test Function called - Version 1.3.1');
+  console.log('🚀 SMTP Test Function called - Version 1.3.2');
   console.log('Method:', event.httpMethod);
   console.log('Headers:', JSON.stringify(event.headers, null, 2));
+  console.log('Path:', event.path);
+  console.log('Query:', event.queryStringParameters);
+  console.log('Context:', JSON.stringify(context, null, 2));
   
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {

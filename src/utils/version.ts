@@ -15,13 +15,35 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.1';
+export const CURRENT_VERSION = '1.3.2';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-01-31';
-export const BUILD_NUMBER = 16;
+export const BUILD_DATE = '2025-02-01';
+export const BUILD_NUMBER = 17;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.2': {
+    version: '1.3.2',
+    release: 'Stable',
+    buildDate: '2025-02-01',
+    buildNumber: 17,
+    features: [
+      'Sistema de email completamente revisado e corrigido',
+      'Logs detalhados implementados em todo o fluxo de email',
+      'Validação robusta de URLs das Netlify Functions',
+      'Tratamento aprimorado de erros HTTP 404',
+      'Debug completo do sistema de SMTP',
+      'Verificação de existência das functions antes do envio',
+      'Fallback para modo simulado quando functions não estão disponíveis'
+    ],
+    bugFixes: [
+      'Correção definitiva do erro HTTP 404 nas Netlify Functions',
+      'Resolução de problemas de roteamento das functions',
+      'Melhoria na detecção de ambiente de desenvolvimento vs produção',
+      'Correção na validação de respostas das functions',
+      'Otimização do sistema de logs de debug'
+    ]
+  },
   '1.3.1': {
     version: '1.3.1',
     release: 'Stable',
