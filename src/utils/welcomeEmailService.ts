@@ -12,14 +12,14 @@ export interface WelcomeEmailData {
 export class WelcomeEmailService {
   static async sendWelcomeEmail(emailData: WelcomeEmailData): Promise<boolean> {
     try {
+      console.log('📧 Iniciando envio de email de boas-vindas:', {
+        to: emailData.userEmail,
+        userName: emailData.userName,
+        role: emailData.userRole
+      });
+      
       const emailContent = this.generateWelcomeEmail(emailData);
       
-      console.log('Sending welcome email:', {
-        to: emailData.userEmail,
-        subject: `Bem-vindo ao CRM-DGA - Suas credenciais de acesso`,
-        content: emailContent
-      });
-
       // Send real email via Netlify Function
       await this.sendEmailViaAPI({
         to: emailData.userEmail,
@@ -27,9 +27,10 @@ export class WelcomeEmailService {
         html: emailContent
       });
 
+      console.log('✅ Email de boas-vindas enviado com sucesso para:', emailData.userEmail);
       return true;
     } catch (error) {
-      console.error('Failed to send welcome email:', error);
+      console.error('❌ Falha no envio do email de boas-vindas:', error);
       return false;
     }
   }
@@ -328,13 +329,22 @@ export class WelcomeEmailService {
     // Get email configuration from localStorage
     const savedConfig = localStorage.getItem('crm-email-config');
     if (!savedConfig) {
+      console.error('❌ Configuração de email não encontrada no localStorage');
       throw new Error('Email configuration not found');
     }
 
     const emailConfig = JSON.parse(savedConfig);
     if (!emailConfig.enabled) {
+      console.error('❌ Notificações de email estão desabilitadas');
       throw new Error('Email notifications are disabled');
     }
+
+    console.log('📤 Enviando email via Netlify Function:', {
+      to: emailData.to,
+      subject: emailData.subject,
+      smtpHost: emailConfig.smtpHost,
+      smtpUser: emailConfig.smtpUser
+    });
 
     try {
       const response = await fetch('/.netlify/functions/send-email', {
@@ -348,6 +358,8 @@ export class WelcomeEmailService {
         })
       });
 
+      console.log('📡 Resposta da Netlify Function:', response.status, response.statusText);
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = 'Failed to send welcome email';
@@ -359,6 +371,7 @@ export class WelcomeEmailService {
           errorMessage = `HTTP ${response.status}: ${errorText || 'Erro na requisição'}`;
         }
         
+        console.error('❌ Erro na resposta da Netlify Function:', errorMessage);
         throw new Error(errorMessage);
       }
 
@@ -366,15 +379,15 @@ export class WelcomeEmailService {
       if (responseText && responseText.trim() !== '') {
         try {
           const result = JSON.parse(responseText);
-          console.log('Welcome email sent successfully:', result);
+          console.log('✅ Email de boas-vindas enviado com sucesso:', result);
         } catch {
-          console.log('Welcome email sent successfully (no JSON response)');
+          console.log('✅ Email de boas-vindas enviado com sucesso (resposta sem JSON)');
         }
       } else {
-        console.log('Welcome email sent successfully (empty response)');
+        console.log('✅ Email de boas-vindas enviado com sucesso (resposta vazia)');
       }
     } catch (error) {
-      console.error('Error sending welcome email:', error);
+      console.error('❌ Erro no envio do email de boas-vindas:', error);
       throw error;
     }
   }

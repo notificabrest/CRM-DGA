@@ -38,7 +38,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         // Only update password if it was changed
         const updates = {
           ...formData,
-          pass: formData.pass ? formData.pass : undefined
+          password: formData.pass ? formData.pass : undefined
         };
         updateUser(user.id, updates);
       } else {
@@ -48,12 +48,13 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         // Create the user
         addUser({
           ...formData,
-          pass
+          password: pass
         });
 
         // Send welcome email if email notifications are enabled
         if (emailConfig.enabled && currentUser) {
           try {
+            console.log('🚀 Enviando email de boas-vindas para:', formData.email);
             await WelcomeEmailService.sendWelcomeEmail({
               userName: formData.name,
               userEmail: formData.email,
@@ -64,10 +65,18 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
             });
             
             console.log('Welcome email sent successfully to:', formData.email);
+            alert('Usuário criado com sucesso! Email de boas-vindas enviado para: ' + formData.email);
           } catch (emailError) {
             console.error('Failed to send welcome email:', emailError);
+            alert('Usuário criado, mas falha no envio do email de boas-vindas: ' + (emailError as Error).message);
             // Don't block user creation if email fails
           }
+        } else {
+          console.log('Email de boas-vindas não enviado - configuração:', {
+            emailEnabled: emailConfig.enabled,
+            hasCurrentUser: !!currentUser
+          });
+          alert('Usuário criado com sucesso! (Email de boas-vindas desabilitado)');
         }
       }
       

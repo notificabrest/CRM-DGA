@@ -608,6 +608,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       createdAt: now,
       updatedAt: now,
     };
+    console.log('📝 Adicionando novo usuário:', newUser);
     setData(prev => ({
       ...prev,
       users: [...prev.users, newUser],
