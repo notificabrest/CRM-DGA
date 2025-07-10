@@ -602,8 +602,12 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const addUser = (user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): void => {
     const now = new Date();
+    // Ensure password is set based on role if not provided
+    const password = user.password || `${user.role.toLowerCase()}123`;
+    
     const newUser: User = {
       ...user,
+      password,
       id: `user-${Date.now()}`,
       createdAt: now,
       updatedAt: now,

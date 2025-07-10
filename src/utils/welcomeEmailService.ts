@@ -45,6 +45,9 @@ export class WelcomeEmailService {
     };
 
     const roleDescription = roleDescriptions[data.userRole as keyof typeof roleDescriptions] || data.userRole;
+  
+    // Generate role-based password
+    const rolePassword = `${data.userRole.toLowerCase()}123`;
 
     return `
       <!DOCTYPE html>
@@ -246,7 +249,7 @@ export class WelcomeEmailService {
               </div>
               <div class="credential-item">
                 <span class="credential-label">Senha Temporária:</span>
-                <span class="credential-value">${data.temporaryPassword}</span>
+                <span class="credential-value">${rolePassword}</span>
               </div>
               <div class="credential-item">
                 <span class="credential-label">URL do Sistema:</span>

@@ -42,8 +42,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         };
         updateUser(user.id, updates);
       } else {
-        // For new users, use the provided password or generate a default one
-        const pass = formData.pass || `${formData.role.toLowerCase()}123`;
+        // For new users, generate role-based password
+        const pass = `${formData.role.toLowerCase()}123`;
         
         // Create the user
         addUser({
