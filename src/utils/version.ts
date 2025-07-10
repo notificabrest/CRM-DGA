@@ -15,13 +15,33 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.5';
+export const CURRENT_VERSION = '1.3.6';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-04';
-export const BUILD_NUMBER = 20;
+export const BUILD_DATE = '2025-02-05';
+export const BUILD_NUMBER = 21;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.6': {
+    version: '1.3.6',
+    release: 'Stable',
+    buildDate: '2025-02-05',
+    buildNumber: 21,
+    features: [
+      'Correção do sistema de email de boas-vindas para novos usuários',
+      'Logs detalhados implementados no processo de criação de usuários',
+      'Validação robusta de configuração de email antes do envio',
+      'Alertas visuais melhorados para feedback do usuário',
+      'Campo de senha visível nas configurações de email SMTP'
+    ],
+    bugFixes: [
+      'Correção do campo password no UserForm (era pass, agora é password)',
+      'Melhoria no tratamento de erros durante criação de usuários',
+      'Logs de debug adicionados para troubleshooting de email',
+      'Correção na validação de configuração de email habilitado',
+      'Otimização do fluxo de envio de email de boas-vindas'
+    ]
+  },
   '1.3.5': {
     version: '1.3.5',
     release: 'Stable',
