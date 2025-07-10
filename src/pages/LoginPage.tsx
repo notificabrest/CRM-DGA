@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import VersionInfo from '../components/common/VersionInfo';
 
 const LoginPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -21,6 +22,9 @@ const LoginPage: React.FC = () => {
           <p className="mt-2 text-gray-600 text-xl">Gestão de Relacionamento com o Cliente</p>
         </div>
         <LoginForm />
+        <div className="mt-8">
+          <VersionInfo />
+        </div>
       </div>
     </div>
   );

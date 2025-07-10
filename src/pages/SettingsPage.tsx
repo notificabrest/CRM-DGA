@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { PipelineStatus, UserRole, UserStatus } from '../types';
 import { useEmail } from '../context/EmailContext';
+import VersionInfo from '../components/common/VersionInfo';
 
 const SettingsPage: React.FC = () => {
   const { currentTheme, availableThemes, setTheme, customizeTheme, setHeaderName, setSidebarName, setLogo } = useTheme();
@@ -251,6 +252,7 @@ const SettingsPage: React.FC = () => {
   const tabs = [
     { id: 'general', label: 'Geral', icon: SettingsIcon, color: 'from-blue-500 to-indigo-600' },
     { id: 'appearance', label: 'Aparência', icon: Palette, color: 'from-purple-500 to-pink-600' },
+    { id: 'version', label: 'Versão', icon: Globe, color: 'from-indigo-500 to-purple-600' },
     { id: 'pipeline', label: 'Pipeline', icon: RefreshCw, color: 'from-green-500 to-emerald-600' },
     { id: 'users', label: 'Usuários', icon: UsersIcon, color: 'from-orange-500 to-red-600' },
     { id: 'integrations', label: 'Integrações', icon: Globe, color: 'from-cyan-500 to-blue-600' },
@@ -508,6 +510,13 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'version' && (
+            <div className="space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Informações da Versão</h2>
+              <VersionInfo showDetailed={true} />
             </div>
           )}
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import VersionInfo from '../common/VersionInfo';
 
 const MainLayout: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -59,6 +60,15 @@ const MainLayout: React.FC = () => {
           <div className="min-h-full">
             <Outlet />
           </div>
+          {/* Version info in footer */}
+          <footer className="border-t border-gray-200 bg-white px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-500">
+                © {new Date().getFullYear()} CRM-DGA. Todos os direitos reservados.
+              </div>
+              <VersionInfo showInFooter={true} />
+            </div>
+          </footer>
         </main>
       </div>
     </div>
