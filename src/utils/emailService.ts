@@ -15,7 +15,7 @@ export interface PipelineNotification {
   clientName: string;
   fromStatus: string;
   toStatus: string;
-  changedBy: string;
+  userName: string;
   dealValue: number;
   timestamp: Date;
 }
@@ -146,8 +146,8 @@ export class EmailService {
             <h2>📋 Detalhes do Negócio</h2>
             <p><strong>Título:</strong> ${notification.dealTitle}</p>
             <p><strong>Cliente:</strong> ${notification.clientName}</p>
-            <p><strong>Valor:</strong> ${formattedValue}</p>
-            <p><strong>Alterado por:</strong> ${notification.changedBy}</p>
+            <p><strong>Valor:</strong> ${notification.dealValue ? formattedValue : 'Não informado'}</p>
+            <p><strong>Alterado por:</strong> ${notification.userName}</p>
             <p><strong>Data/Hora:</strong> ${formattedDate}</p>
           </div>
 
