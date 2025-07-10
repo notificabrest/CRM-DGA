@@ -2,13 +2,28 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
-  console.log('📧 Send Email Function called - Version 1.3.2');
+  console.log('📧 Send Email Function called - Version 1.3.3');
   console.log('Method:', event.httpMethod);
   console.log('Headers:', JSON.stringify(event.headers, null, 2));
   console.log('Path:', event.path);
   console.log('Query:', event.queryStringParameters);
   console.log('Context:', JSON.stringify(context, null, 2));
   
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    console.log('✅ CORS preflight handled');
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
+      },
+      body: ''
+    };
+  }
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     console.log('❌ Method not allowed:', event.httpMethod);
@@ -24,20 +39,9 @@ exports.handler = async (event, context) => {
     };
   }
 
-  // Handle CORS preflight
-  if (event.httpMethod === 'OPTIONS') {
-    console.log('✅ CORS preflight handled');
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Content-Type': 'application/json'
-      },
-      body: ''
-    };
-  }
+  // Initialize variables
+  let emailData = null;
+  let smtpConfig = null;
 
   try {
     console.log('📥 Request body:', event.body);
@@ -58,7 +62,27 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const { emailData, smtpConfig } = JSON.parse(event.body);
+    // Parse request body
+    let requestData;
+    try {
+      requestData = JSON.parse(event.body);
+      emailData = requestData.emailData;
+      smtpConfig = requestData.smtpConfig;
+    } catch (parseError) {
+      console.log('❌ JSON parse error:', parseError);
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          success: false, 
+          error: 'Invalid JSON data' 
+        })
+      };
+    }
 
     // Validate required fields
     if (!emailData || !smtpConfig) {

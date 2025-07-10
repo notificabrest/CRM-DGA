@@ -2,28 +2,13 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
-  console.log('🚀 SMTP Test Function called - Version 1.3.2');
+  console.log('🚀 SMTP Test Function called - Version 1.3.3');
   console.log('Method:', event.httpMethod);
   console.log('Headers:', JSON.stringify(event.headers, null, 2));
   console.log('Path:', event.path);
   console.log('Query:', event.queryStringParameters);
   console.log('Context:', JSON.stringify(context, null, 2));
   
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    console.log('❌ Method not allowed:', event.httpMethod);
-    return {
-      statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     console.log('✅ CORS preflight handled');
@@ -39,6 +24,21 @@ exports.handler = async (event, context) => {
     };
   }
 
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    console.log('❌ Method not allowed:', event.httpMethod);
+    return {
+      statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
   const startTime = Date.now();
   const logs = [];
   
@@ -49,32 +49,129 @@ exports.handler = async (event, context) => {
     console.log(logEntry);
   };
 
+  // Initialize variables
+  let smtpConfig = null;
+  let testEmail = null;
+
   try {
     console.log('📥 Request body:', event.body);
     
     if (!event.body) {
       log('❌ Erro: Corpo da requisição vazio');
-      throw new Error('Corpo da requisição não fornecido');
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: 'Corpo da requisição não fornecido',
+          details: {
+            timestamp: new Date().toISOString(),
+            host: 'N/A',
+            port: 'N/A',
+            secure: false,
+            user: 'N/A',
+            testEmail: 'N/A',
+            error: 'Corpo da requisição vazio',
+            logs: logs
+          }
+        })
+      };
     }
 
-    const { smtpConfig, testEmail } = JSON.parse(event.body);
+    // Parse request body
+    let requestData;
+    try {
+      requestData = JSON.parse(event.body);
+      smtpConfig = requestData.smtpConfig;
+      testEmail = requestData.testEmail;
+    } catch (parseError) {
+      log('❌ Erro: Falha ao fazer parse do JSON');
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: 'Dados JSON inválidos',
+          details: {
+            timestamp: new Date().toISOString(),
+            host: 'N/A',
+            port: 'N/A',
+            secure: false,
+            user: 'N/A',
+            testEmail: 'N/A',
+            error: parseError.message,
+            logs: logs
+          }
+        })
+      };
+    }
 
     log('🚀 Iniciando teste de conexão SMTP REAL...');
-    log(`Host: ${smtpConfig.smtpHost}`);
-    log(`Port: ${smtpConfig.smtpPort}`);
-    log(`Secure: ${smtpConfig.smtpSecure ? 'TLS/SSL' : 'No'}`);
-    log(`User: ${smtpConfig.smtpUser}`);
-    log(`Test Email: ${testEmail}`);
+    log(`Host: ${smtpConfig?.smtpHost || 'N/A'}`);
+    log(`Port: ${smtpConfig?.smtpPort || 'N/A'}`);
+    log(`Secure: ${smtpConfig?.smtpSecure ? 'TLS/SSL' : 'No'}`);
+    log(`User: ${smtpConfig?.smtpUser || 'N/A'}`);
+    log(`Test Email: ${testEmail || 'N/A'}`);
 
     // Validate configuration
-    if (!smtpConfig.smtpHost || !smtpConfig.smtpUser || !smtpConfig.smtpPassword) {
+    if (!smtpConfig || !smtpConfig.smtpHost || !smtpConfig.smtpUser || !smtpConfig.smtpPassword) {
       log('❌ Erro: Configuração SMTP incompleta');
-      throw new Error('Configuração SMTP incompleta. Verifique host, usuário e senha.');
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: 'Configuração SMTP incompleta. Verifique host, usuário e senha.',
+          details: {
+            timestamp: new Date().toISOString(),
+            host: smtpConfig?.smtpHost || 'N/A',
+            port: smtpConfig?.smtpPort || 'N/A',
+            secure: smtpConfig?.smtpSecure || false,
+            user: smtpConfig?.smtpUser || 'N/A',
+            testEmail: testEmail || 'N/A',
+            error: 'Configuração SMTP incompleta',
+            logs: logs
+          }
+        })
+      };
     }
 
     if (!testEmail) {
       log('❌ Erro: Email de teste não fornecido');
-      throw new Error('Email de teste não fornecido.');
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: 'Email de teste não fornecido.',
+          details: {
+            timestamp: new Date().toISOString(),
+            host: smtpConfig.smtpHost,
+            port: smtpConfig.smtpPort,
+            secure: smtpConfig.smtpSecure,
+            user: smtpConfig.smtpUser,
+            testEmail: 'N/A',
+            error: 'Email de teste não fornecido',
+            logs: logs
+          }
+        })
+      };
     }
 
     log('✅ Validação de configuração: OK');

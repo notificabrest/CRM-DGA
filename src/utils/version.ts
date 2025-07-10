@@ -15,13 +15,33 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.2';
+export const CURRENT_VERSION = '1.3.3';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-01';
-export const BUILD_NUMBER = 17;
+export const BUILD_DATE = '2025-02-02';
+export const BUILD_NUMBER = 18;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.3': {
+    version: '1.3.3',
+    release: 'Stable',
+    buildDate: '2025-02-02',
+    buildNumber: 18,
+    features: [
+      'Correção definitiva do erro HTTP 502 nas Netlify Functions',
+      'Variável smtpConfig corrigida na function test-smtp',
+      'Tratamento robusto de parsing JSON nas functions',
+      'Validação completa de dados de entrada',
+      'Logs de debug otimizados para produção'
+    ],
+    bugFixes: [
+      'Correção do erro "smtpConfig is not defined"',
+      'Resolução de problemas de escopo de variáveis',
+      'Melhoria na estrutura de try-catch das functions',
+      'Correção na validação de corpo da requisição',
+      'Otimização do tratamento de erros HTTP'
+    ]
+  },
   '1.3.2': {
     version: '1.3.2',
     release: 'Stable',
