@@ -98,27 +98,15 @@ const PhoneSearchPage: React.FC = () => {
   };
 
   const handleNewClient = (phoneNumber?: string) => {
-    setSelectedClient(phoneNumber ? {
-      id: '',
-      name: '',
-      email: '',
-      phones: [
-        {
-          id: `phone-${Date.now()}`,
-          type: PhoneType.MAIN,
-          number: phoneNumber,
-          isPrimary: true,
-        }
-      ],
-      branchId: '',
-      ownerId: '',
-      status: 'ACTIVE',
-      tags: [],
-      observations: [],
-      customFields: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } : undefined);
+    // Don't set selectedClient for new clients, just pass the phone number
+    setSelectedClient(undefined);
+    
+    // If we have a phone number, we'll handle it in the form component
+    if (phoneNumber) {
+      // Store the phone number to be used by the form
+      sessionStorage.setItem('newClientPhone', phoneNumber);
+    }
+    
     setShowForm(true);
   };
 

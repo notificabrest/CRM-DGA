@@ -27,9 +27,26 @@ const formatPhoneNumber = (value: string): string => {
 const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => {
   const { branches, addClient, updateClient } = useData();
   const { user } = useAuth();
+  
+  // Check if there's a phone number from phone search
+  const newClientPhone = sessionStorage.getItem('newClientPhone');
 
-  const [formData, setFormData] = useState<Partial<Client>>(
-    client || {
+  const getInitialFormData = () => {
+    if (client) {
+      return client;
+    }
+    
+    // For new clients, check if we have a phone number from search
+    const initialPhones = newClientPhone ? [
+      {
+        id: `phone-${Date.now()}`,
+        type: PhoneType.MAIN,
+        number: newClientPhone,
+        isPrimary: true,
+      }
+    ] : initialPhones;
+    
+    return {
       name: '',
       email: '',
       company: '',
@@ -42,8 +59,17 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => 
       ownerId: user?.id || '',
       observations: [],
       customFields: {},
+    };
+  };
+
+  const [formData, setFormData] = useState<Partial<Client>>(getInitialFormData());
+  
+  // Clear the session storage after using it
+  React.useEffect(() => {
+    if (newClientPhone && !client) {
+      sessionStorage.removeItem('newClientPhone');
     }
-  );
+  }, [newClientPhone, client]);
 
   const [phoneInput, setPhoneInput] = useState('');
   const [tag, setTag] = useState('');
