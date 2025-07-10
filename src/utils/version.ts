@@ -15,13 +15,33 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.0';
+export const CURRENT_VERSION = '1.3.1';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-01-30';
-export const BUILD_NUMBER = 15;
+export const BUILD_DATE = '2025-01-31';
+export const BUILD_NUMBER = 16;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.1': {
+    version: '1.3.1',
+    release: 'Stable',
+    buildDate: '2025-01-31',
+    buildNumber: 16,
+    features: [
+      'Correção do erro HTTP 404 nas Netlify Functions',
+      'Melhoria no tratamento de respostas JSON vazias',
+      'Logs de debug aprimorados para troubleshooting',
+      'Validação robusta de respostas HTTP',
+      'Headers Content-Type corrigidos nas functions'
+    ],
+    bugFixes: [
+      'Correção do erro "Unexpected end of JSON input"',
+      'Resolução do erro HTTP 404 no teste SMTP',
+      'Melhoria no tratamento de erros de parsing JSON',
+      'Correção na validação de respostas das Netlify Functions',
+      'Otimização do sistema de logs de erro'
+    ]
+  },
   '1.3.0': {
     version: '1.3.0',
     release: 'Stable',

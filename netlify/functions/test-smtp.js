@@ -1,14 +1,20 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
+  console.log('🚀 SMTP Test Function called - Version 1.3.1');
+  console.log('Method:', event.httpMethod);
+  console.log('Headers:', JSON.stringify(event.headers, null, 2));
+  
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
+    console.log('❌ Method not allowed:', event.httpMethod);
     return {
       statusCode: 405,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
@@ -16,12 +22,14 @@ exports.handler = async (event, context) => {
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
+    console.log('✅ CORS preflight handled');
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
       },
       body: ''
     };
@@ -38,6 +46,13 @@ exports.handler = async (event, context) => {
   };
 
   try {
+    console.log('📥 Request body:', event.body);
+    
+    if (!event.body) {
+      log('❌ Erro: Corpo da requisição vazio');
+      throw new Error('Corpo da requisição não fornecido');
+    }
+
     const { smtpConfig, testEmail } = JSON.parse(event.body);
 
     log('🚀 Iniciando teste de conexão SMTP REAL...');
@@ -104,28 +119,33 @@ exports.handler = async (event, context) => {
     log('🎉 Teste de conexão SMTP concluído com êxito!');
     log('📧 Verifique sua caixa de entrada para confirmar o recebimento');
 
+    const successResponse = {
+      success: true,
+      message: 'Teste de conexão SMTP realizado com sucesso! Email enviado.',
+      details: {
+        timestamp: new Date().toISOString(),
+        host: smtpConfig.smtpHost,
+        port: smtpConfig.smtpPort,
+        secure: smtpConfig.smtpSecure,
+        user: smtpConfig.smtpUser,
+        testEmail: testEmail,
+        responseTime,
+        messageId: info.messageId,
+        response: info.response,
+        logs: logs
+      }
+    };
+
+    console.log('✅ Sending success response:', JSON.stringify(successResponse, null, 2));
+
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        success: true,
-        message: 'Teste de conexão SMTP realizado com sucesso! Email enviado.',
-        details: {
-          timestamp: new Date().toISOString(),
-          host: smtpConfig.smtpHost,
-          port: smtpConfig.smtpPort,
-          secure: smtpConfig.smtpSecure,
-          user: smtpConfig.smtpUser,
-          testEmail: testEmail,
-          responseTime,
-          messageId: info.messageId,
-          response: info.response,
-          logs: logs
-        }
-      })
+      body: JSON.stringify(successResponse)
     };
 
   } catch (error) {
@@ -136,6 +156,26 @@ exports.handler = async (event, context) => {
     log(`❌ Teste falhou após ${responseTime}ms`);
 
     console.error('SMTP Test Error:', error);
+    console.error('Error stack:', error.stack);
+
+    const errorResponse = {
+      success: false,
+      message: `Falha na conexão SMTP: ${errorMessage}`,
+      details: {
+        timestamp: new Date().toISOString(),
+        host: smtpConfig?.smtpHost || 'N/A',
+        port: smtpConfig?.smtpPort || 'N/A',
+        secure: smtpConfig?.smtpSecure || false,
+        user: smtpConfig?.smtpUser || 'N/A',
+        testEmail: testEmail || 'N/A',
+        responseTime,
+        error: errorMessage,
+        logs: logs
+      }
+    };
+
+    console.log('❌ Sending error response:', JSON.stringify(errorResponse, null, 2));
+
     return {
       statusCode: 500,
       headers: {
@@ -143,21 +183,7 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Headers': 'Content-Type',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        success: false,
-        message: `Falha na conexão SMTP: ${errorMessage}`,
-        details: {
-          timestamp: new Date().toISOString(),
-          host: smtpConfig.smtpHost,
-          port: smtpConfig.smtpPort,
-          secure: smtpConfig.smtpSecure,
-          user: smtpConfig.smtpUser,
-          testEmail: testEmail,
-          responseTime,
-          error: errorMessage,
-          logs: logs
-        }
-      })
+      body: JSON.stringify(errorResponse)
     };
   }
 };
