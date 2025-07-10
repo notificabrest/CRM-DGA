@@ -166,8 +166,8 @@ export const useVersion = () => {
   return {
     currentVersion: VersionManager.getCurrentVersion(),
     allVersions: VersionManager.getAllVersions(),
-    formatVersion: VersionManager.formatVersion,
-    formatBuildInfo: VersionManager.formatBuildInfo,
-    getVersionBadgeColor: VersionManager.getVersionBadgeColor
+    formatVersion: (includeRelease?: boolean) => VersionManager.formatVersion(includeRelease),
+    formatBuildInfo: () => VersionManager.formatBuildInfo(),
+    getVersionBadgeColor: (release: string) => VersionManager.getVersionBadgeColor(release)
   };
 };
