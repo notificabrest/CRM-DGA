@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '../types';
-import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -11,91 +10,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasPermission: (requiredRoles: UserRole[]) => boolean;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock users with passwords (in a real app, passwords would be hashed)
-const MOCK_USERS = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'admin123',
-    phone: '+5511999999999',
-    role: UserRole.ADMIN,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Director User',
-    email: 'director@example.com',
-    password: 'director123',
-    phone: '+5511888888888',
-    role: UserRole.DIRECTOR,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1', '2'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Manager User',
-    email: 'manager@example.com',
-    password: 'manager123',
-    phone: '+5511777777777',
-    role: UserRole.MANAGER,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Jonny Santos',
-    email: 'jonny@brestelecom.com.br',
-    password: 'vendas123',
-    phone: '+5511666666666',
-    role: UserRole.SALESPERSON,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Alex Support',
-    email: 'suporte@brestelecom.com.br',
-    password: 'suporte123',
-    phone: '+5511555555555',
-    role: UserRole.ASSISTANT,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Rafael Sales',
-    email: 'contato@brestelecom.com.br',
-    password: 'vendas123',
-    phone: '+5511444444444',
-    role: UserRole.SALESPERSON,
-    status: 'ACTIVE',
-    branchId: '1',
-    branchIds: ['1'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-];
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -106,11 +24,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Get users from localStorage (same source as DataContext)
+  const getUsers = () => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        return parsedData.users || [];
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+    return [];
+  };
+
+  // Update user in localStorage
+  const updateUserInStorage = (updatedUser: User) => {
+    try {
+      const savedData = localStorage.getItem('crm-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        const users = parsedData.users || [];
+        const userIndex = users.findIndex((u: User) => u.id === updatedUser.id);
+        if (userIndex !== -1) {
+          users[userIndex] = updatedUser;
+          parsedData.users = users;
+          localStorage.setItem('crm-data', JSON.stringify(parsedData));
+        }
+      }
+    } catch (error) {
+      console.error('Error updating user in storage:', error);
+    }
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem('crm-user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        // Verify user still exists in the system
+        const users = getUsers();
+        const currentUser = users.find((u: User) => u.id === parsedUser.id);
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          localStorage.removeItem('crm-user');
+        }
       } catch (err) {
         console.error('Failed to parse saved user', err);
         localStorage.removeItem('crm-user');
@@ -126,14 +85,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const foundUser = MOCK_USERS.find(
-        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      const users = getUsers();
+      console.log('🔍 Tentando login para:', email);
+      console.log('👥 Usuários disponíveis:', users.map((u: User) => ({ email: u.email, password: u.password })));
+      
+      const foundUser = users.find((u: User) => 
+        u.email.toLowerCase() === email.toLowerCase() && 
+        u.password === password
       );
       
       if (!foundUser) {
-        throw new Error('Invalid email or password');
+        console.log('❌ Usuário não encontrado ou senha incorreta');
+        throw new Error('Email ou senha inválidos');
       }
       
+      console.log('✅ Login bem-sucedido para:', foundUser.name);
+      
+      // Remove password from user object before storing
       const { password: _, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword as User);
       localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
@@ -147,17 +115,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
     if (!user) {
-      throw new Error('No user logged in');
+      throw new Error('Nenhum usuário logado');
     }
 
-    const foundUser = MOCK_USERS.find(u => u.email === user.email);
+    const users = getUsers();
+    const foundUser = users.find((u: User) => u.email === user.email);
     if (!foundUser || foundUser.password !== currentPassword) {
-      throw new Error('Current password is incorrect');
+      throw new Error('Senha atual está incorreta');
     }
 
-    // In a real app, this would make an API call to update the password
-    foundUser.password = newPassword;
+    // Update password in the user object
+    const updatedUser = { ...foundUser, password: newPassword };
+    updateUserInStorage(updatedUser);
+    
     return Promise.resolve();
+  };
+
+  const resetPassword = async (email: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const users = getUsers();
+      const foundUser = users.find((u: User) => u.email.toLowerCase() === email.toLowerCase());
+      
+      if (!foundUser) {
+        throw new Error('Email não encontrado no sistema');
+      }
+
+      // Reset password to default
+      const defaultPassword = `${foundUser.role.toLowerCase()}123`;
+      const updatedUser = { ...foundUser, password: defaultPassword };
+      updateUserInStorage(updatedUser);
+
+      // Send reset email (simulate)
+      console.log(`📧 Enviando email de reset de senha para: ${email}`);
+      console.log(`🔑 Nova senha: ${defaultPassword}`);
+      
+      // In a real application, you would send an email here
+      alert(`Senha resetada com sucesso! Nova senha: ${defaultPassword}\n\nEm um sistema real, esta informação seria enviada por email.`);
+      
+    } catch (err) {
+      setError((err as Error).message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = (): void => {
@@ -179,6 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     hasPermission,
     updatePassword,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
