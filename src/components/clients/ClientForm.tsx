@@ -37,7 +37,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => 
     }
     
     // For new clients, check if we have a phone number from search
-    const initialPhones = newClientPhone ? [
+    const phonesToUse = newClientPhone ? [
       {
         id: `phone-${Date.now()}`,
         type: PhoneType.MAIN,
@@ -52,7 +52,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSave, onCancel }) => 
       company: '',
       position: '',
       department: '',
-      phones: initialPhones,
+      phones: phonesToUse,
       status: 'ACTIVE',
       tags: [],
       branchId: user?.branchIds[0] || '',
