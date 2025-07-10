@@ -181,13 +181,14 @@ exports.handler = async (event, context) => {
     const transporter = nodemailer.createTransport({
       host: smtpConfig.smtpHost,
       port: parseInt(smtpConfig.smtpPort),
-      secure: smtpConfig.smtpSecure,
+      secure: parseInt(smtpConfig.smtpPort) === 465, // true for 465, false for other ports
       auth: {
         user: smtpConfig.smtpUser,
         pass: smtpConfig.smtpPassword
       },
       tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
       }
     });
 
