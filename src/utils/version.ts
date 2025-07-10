@@ -15,13 +15,32 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.2.1';
+export const CURRENT_VERSION = '1.2.2';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-01-28';
-export const BUILD_NUMBER = 13;
+export const BUILD_DATE = '2025-01-29';
+export const BUILD_NUMBER = 14;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.2.2': {
+    version: '1.2.2',
+    release: 'Stable',
+    buildDate: '2025-01-29',
+    buildNumber: 14,
+    features: [
+      'Melhorias no sistema de teste de conexão SMTP',
+      'Logs detalhados e copiáveis para debug de email',
+      'Avisos claros sobre limitações do teste simulado',
+      'Interface aprimorada para visualização de logs',
+      'Documentação inline sobre configuração real de SMTP'
+    ],
+    bugFixes: [
+      'Esclarecimento sobre teste simulado vs envio real',
+      'Melhoria na apresentação de resultados de teste',
+      'Correção na exibição de informações técnicas',
+      'Otimização da interface de logs'
+    ]
+  },
   '1.2.1': {
     version: '1.2.1',
     release: 'Stable',

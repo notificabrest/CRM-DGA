@@ -941,6 +941,49 @@ const SettingsPage: React.FC = () => {
                           : 'bg-red-100 text-red-800 border border-red-200'
                       }`}>
                         <p className="text-sm font-medium">{testResult.message}</p>
+                        
+                        {/* Show detailed logs */}
+                        {testResult.details && (
+                          <div className="mt-3">
+                            <button
+                              onClick={() => setShowLogs(!showLogs)}
+                              className="text-xs underline hover:no-underline"
+                            >
+                              {showLogs ? 'Ocultar Logs' : 'Ver Logs Detalhados'}
+                            </button>
+                            
+                            {showLogs && (
+                              <div className="mt-2 p-3 bg-gray-900 text-green-400 rounded-md text-xs font-mono max-h-60 overflow-y-auto">
+                                {testResult.details.logs.map((log, index) => (
+                                  <div key={index} className="mb-1">{log}</div>
+                                ))}
+                                
+                                <div className="mt-3 pt-2 border-t border-gray-700">
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(testResult.details.logs.join('\n'));
+                                      alert('Logs copiados para a área de transferência!');
+                                    }}
+                                    className="text-blue-400 hover:text-blue-300 underline"
+                                  >
+                                    📋 Copiar Logs
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Warning about mock email */}
+                        {testResult.success && (
+                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-800">
+                              <strong>⚠️ Importante:</strong> Este é um teste simulado. Para envio real de emails, 
+                              você precisa configurar um backend com servidor SMTP real. 
+                              Os logs mostram como seria o processo de envio.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                     
@@ -980,6 +1023,19 @@ const SettingsPage: React.FC = () => {
                     <li>• Use uma senha de app (não sua senha normal)</li>
                     <li>• Ative a verificação em 2 etapas no Gmail</li>
                   </ul>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-300">
+                    <h5 className="font-medium text-blue-900 mb-1">🔧 Para Envio Real:</h5>
+                    <p className="text-xs text-blue-800">
+                      Para envio real de emails, você precisa implementar um backend que:
+                    </p>
+                    <ul className="text-xs text-blue-800 mt-1 space-y-1">
+                      <li>• Receba as configurações SMTP via API</li>
+                      <li>• Use bibliotecas como Nodemailer (Node.js) ou similar</li>
+                      <li>• Faça a conexão real com o servidor SMTP</li>
+                      <li>• Retorne logs detalhados do processo</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>

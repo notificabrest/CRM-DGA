@@ -93,41 +93,49 @@ export class EmailService {
     this.clearLogs();
     const startTime = Date.now();
     
-    this.log('Iniciando teste de conexão SMTP...');
+    this.log('🚀 Iniciando teste de conexão SMTP...');
     this.log(`Host: ${this.config.smtpHost}`);
     this.log(`Port: ${this.config.smtpPort}`);
     this.log(`Secure: ${this.config.smtpSecure ? 'TLS/SSL' : 'No'}`);
     this.log(`User: ${this.config.smtpUser}`);
+    this.log('');
+    this.log('⚠️  IMPORTANTE: Este é um teste SIMULADO');
+    this.log('⚠️  Para envio real, configure um backend com SMTP');
+    this.log('');
 
     try {
       // Validate configuration
       if (!this.config.smtpHost || !this.config.smtpUser || !this.config.smtpPassword) {
+        this.log('❌ Erro: Configuração SMTP incompleta');
         throw new Error('Configuração SMTP incompleta. Verifique host, usuário e senha.');
       }
 
       if (!this.config.notificationEmail) {
+        this.log('❌ Erro: Email de notificação não configurado');
         throw new Error('Email de notificação não configurado.');
       }
 
-      this.log('Validação de configuração: OK');
-      this.log('Simulando conexão com servidor SMTP...');
+      this.log('✅ Validação de configuração: OK');
+      this.log('🔌 Simulando conexão com servidor SMTP...');
       
       // Simulate connection test with realistic delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      this.log('Conexão estabelecida com sucesso');
-      this.log('Autenticando usuário...');
+      this.log('✅ Conexão estabelecida com sucesso');
+      this.log('🔐 Simulando autenticação de usuário...');
       
       // Simulate authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      this.log('Autenticação realizada com sucesso');
-      this.log('Preparando email de teste...');
+      this.log('✅ Autenticação simulada com sucesso');
+      this.log('📧 Preparando email de teste...');
       
       // Generate test email
       const testEmailContent = this.generateTestEmail();
       
-      this.log('Enviando email de teste...');
+      this.log('📤 Simulando envio de email de teste...');
+      this.log(`📧 Para: ${this.config.notificationEmail}`);
+      this.log(`📧 Assunto: ✅ Teste de Conexão SMTP - CRM-DGA`);
       
       // Send test email
       const emailData = {
@@ -139,12 +147,18 @@ export class EmailService {
       await this.mockSendEmail(emailData);
       
       const responseTime = Date.now() - startTime;
-      this.log(`Email de teste enviado com sucesso em ${responseTime}ms`);
-      this.log('Teste de conexão SMTP concluído com êxito!');
+      this.log(`✅ Simulação de envio concluída em ${responseTime}ms`);
+      this.log('');
+      this.log('🎉 Teste de conexão SMTP simulado com êxito!');
+      this.log('');
+      this.log('📝 NOTA: Para envio real, implemente:');
+      this.log('   • Backend com Nodemailer ou similar');
+      this.log('   • API endpoint para envio de emails');
+      this.log('   • Configuração SMTP no servidor');
       
       return {
         success: true,
-        message: 'Conexão SMTP testada com sucesso! Email de teste enviado.',
+        message: 'Teste de conexão SMTP simulado com sucesso! Verifique os logs para detalhes.',
         details: {
           timestamp: new Date().toISOString(),
           host: this.config.smtpHost,
@@ -161,8 +175,8 @@ export class EmailService {
       const responseTime = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
-      this.log(`ERRO: ${errorMessage}`);
-      this.log(`Teste falhou após ${responseTime}ms`);
+      this.log(`❌ ERRO: ${errorMessage}`);
+      this.log(`❌ Teste falhou após ${responseTime}ms`);
       
       return {
         success: false,
@@ -435,7 +449,7 @@ export class EmailService {
 
   private async mockSendEmail(emailData: any): Promise<void> {
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // In a real application, this would make an HTTP request to your backend
     // Example:
@@ -449,9 +463,10 @@ export class EmailService {
     // });
     
     // For now, just log the email that would be sent
-    this.log(`📧 Email enviado para: ${emailData.to}`);
-    this.log(`📧 Assunto: ${emailData.subject}`);
-    this.log(`📧 Tamanho do conteúdo: ${emailData.html.length} caracteres`);
+    this.log(`📧 Simulação: Email seria enviado para: ${emailData.to}`);
+    this.log(`📧 Simulação: Assunto: ${emailData.subject}`);
+    this.log(`📧 Simulação: Tamanho do conteúdo: ${emailData.html.length} caracteres`);
+    this.log(`📧 Simulação: Status: Enviado com sucesso (MOCK)`);
   }
 }
 
