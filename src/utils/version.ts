@@ -15,13 +15,35 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.5';
+export const CURRENT_VERSION = '1.3.6';
 export const CURRENT_RELEASE = 'Stable';
 export const BUILD_DATE = '2025-02-04';
-export const BUILD_NUMBER = 20;
+export const BUILD_NUMBER = 21;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.6': {
+    version: '1.3.6',
+    release: 'Stable',
+    buildDate: '2025-02-04',
+    buildNumber: 21,
+    features: [
+      'Sistema de upload de logo totalmente funcional',
+      'Modais de configuração para todas as integrações',
+      'Campos expandíveis para configuração LDAP',
+      'Feedback visual para salvamento de configurações',
+      'Sistema de autenticação com usuários criados',
+      'Funcionalidade "Esqueceu a senha" implementada'
+    ],
+    bugFixes: [
+      'Correção do botão de upload de logo não responsivo',
+      'Correção do botão salvar sem feedback',
+      'Correção da aba Integrações sem funcionalidade',
+      'Correção dos campos LDAP não expandindo',
+      'Correção do sistema de autenticação de usuários',
+      'Correção da configuração SSL/TLS para Gmail'
+    ]
+  },
   '1.3.5': {
     version: '1.3.5',
     release: 'Stable',
