@@ -18,7 +18,7 @@ const SettingsPage: React.FC = () => {
   const { users, addUser, updateUser, deleteUser } = useData();
   const { emailConfig, updateEmailConfig, testEmailConnection, isTestingConnection } = useEmail();
   
-  const [activeTab, setActiveTab] = useState<'general' | 'email' | 'theme' | 'users' | 'version'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'email' | 'theme' | 'users' | 'version'>('email');
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | undefined>(undefined);
   const [testResult, setTestResult] = useState<any>(null);
@@ -105,17 +105,23 @@ const SettingsPage: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'general', label: 'General', icon: Settings },
-    { id: 'email', label: 'Email', icon: Mail },
-    { id: 'theme', label: 'Theme', icon: Palette },
-    ...(hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) ? [{ id: 'users', label: 'Users', icon: Users }] : []),
-    { id: 'version', label: 'Version', icon: Globe },
+    { id: 'general', label: 'Geral', icon: Settings },
+    { id: 'theme', label: 'Aparência', icon: Palette },
+    { id: 'version', label: 'Versão', icon: Globe },
+    { id: 'email', label: 'Notificações', icon: Bell },
+    ...(hasPermission([UserRole.ADMIN, UserRole.DIRECTOR]) ? [{ id: 'users', label: 'Usuários', icon: Users }] : []),
   ];
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Configurações do Sistema</h1>
+          <p className="text-gray-600 mt-1">Personalize e configure seu CRM</p>
+        </div>
+        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">
+          Salvar Alterações
+        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -146,11 +152,11 @@ const SettingsPage: React.FC = () => {
         {activeTab === 'general' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">General Settings</h3>
+              <h3 className="text-lg font-medium mb-4">Configurações Gerais</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    System Name
+                    Nome do Sistema
                   </label>
                   <input
                     type="text"
@@ -161,7 +167,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Logo URL
+                    URL do Logo
                   </label>
                   <input
                     type="url"
@@ -175,7 +181,7 @@ const SettingsPage: React.FC = () => {
                   onClick={handleCustomThemeUpdate}
                   className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                 >
-                  Save Changes
+                  Salvar Alterações
                 </button>
               </div>
             </div>
@@ -184,74 +190,106 @@ const SettingsPage: React.FC = () => {
 
         {activeTab === 'email' && (
           <div className="space-y-6">
+            {/* Configurações de Notificação */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium">Email Configuration</h3>
-                <div className="flex items-center">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <Mail className="mr-2 text-pink-500" size={20} />
+                Notificações por Email
+              </h3>
+              
+              <div className="mb-6 p-4 bg-pink-50 rounded-lg border border-pink-200">
+                <div className="flex items-center mb-2">
                   <input
                     type="checkbox"
                     id="emailEnabled"
                     checked={emailConfig.enabled}
                     onChange={(e) => handleEmailConfigUpdate('enabled', e.target.checked)}
-                    className="mr-2"
+                    className="mr-2 w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                   />
-                  <label htmlFor="emailEnabled" className="text-sm text-gray-700">
-                    Enable Email Notifications
+                  <label htmlFor="emailEnabled" className="text-sm font-medium text-gray-700">
+                    Habilitar notificações por email
                   </label>
                 </div>
+                <p className="text-xs text-gray-500 ml-6">
+                  Quando ativado, o sistema enviará notificações automáticas por email de eventos importantes.
+                </p>
               </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email para Notificações
+                </label>
+                <input
+                  type="email"
+                  value={emailConfig.notificationEmail}
+                  onChange={(e) => handleEmailConfigUpdate('notificationEmail', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  placeholder="jonny@brestelecom.com.br"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Email que receberá as notificações de movimentação do pipeline
+                </p>
+              </div>
+            </div>
+
+            {/* Configuração do Servidor SMTP */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                <Settings className="mr-2 text-blue-500" size={20} />
+                Configuração do Servidor SMTP
+              </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SMTP Host
+                    Servidor SMTP
                   </label>
                   <input
                     type="text"
                     value={emailConfig.smtpHost}
                     onChange={(e) => handleEmailConfigUpdate('smtpHost', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="smtp.gmail.com"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SMTP Port
+                    Porta
                   </label>
                   <input
                     type="number"
                     value={emailConfig.smtpPort}
                     onChange={(e) => handleEmailConfigUpdate('smtpPort', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="587"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SMTP User
+                    Usuário SMTP
                   </label>
                   <input
                     type="email"
                     value={emailConfig.smtpUser}
                     onChange={(e) => handleEmailConfigUpdate('smtpUser', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="your-email@gmail.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="testecovid1@gmail.com"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SMTP Password
+                    Senha SMTP
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={emailConfig.smtpPassword}
                       onChange={(e) => handleEmailConfigUpdate('smtpPassword', e.target.value)}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="App Password (16 characters)"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="••••••••••••••••"
                     />
                     <button
                       type="button"
@@ -266,47 +304,68 @@ const SettingsPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notification Email
-                  </label>
-                  <input
-                    type="email"
-                    value={emailConfig.notificationEmail}
-                    onChange={(e) => handleEmailConfigUpdate('notificationEmail', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="notifications@example.com"
-                  />
-                </div>
-                
+              </div>
+
+              <div className="mb-6">
                 <div className="flex items-center">
                   <input
                     type="checkbox"
                     id="smtpSecure"
                     checked={emailConfig.smtpSecure}
                     onChange={(e) => handleEmailConfigUpdate('smtpSecure', e.target.checked)}
-                    className="mr-2"
+                    className="mr-2 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <label htmlFor="smtpSecure" className="text-sm text-gray-700">
-                    Use SSL/TLS
+                    Usar conexão segura (TLS/SSL)
                   </label>
                 </div>
               </div>
               
-              <div className="mt-6 flex space-x-3">
-                <button
-                  onClick={handleTestConnection}
-                  disabled={isTestingConnection}
-                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {isTestingConnection ? (
-                    <Loader size={16} className="mr-2 animate-spin" />
-                  ) : (
-                    <TestTube size={16} className="mr-2" />
-                  )}
-                  Test Connection
-                </button>
+              <button
+                onClick={handleTestConnection}
+                disabled={isTestingConnection}
+                className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+              >
+                {isTestingConnection ? (
+                  <Loader size={16} className="mr-2 animate-spin" />
+                ) : (
+                  <TestTube size={16} className="mr-2" />
+                )}
+                Testar Conexão SMTP (Envio Real)
+              </button>
+            </div>
+
+            {/* Sistema de Email Real Implementado */}
+            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+              <h4 className="text-lg font-medium text-green-800 mb-2 flex items-center">
+                <CheckCircle className="mr-2" size={20} />
+                Sistema de Email Real Implementado!
+              </h4>
+              <p className="text-green-700 mb-4">
+                O sistema agora envia emails reais usando Netlify Functions com Nodemailer. Configure seu SMTP e teste a conexão para começar a receber notificações.
+              </p>
+              
+              <div className="bg-white p-4 rounded-lg border border-green-300">
+                <h5 className="font-medium text-green-800 mb-2">Configuração para Gmail:</h5>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Servidor: smtp.gmail.com</li>
+                  <li>• Porta: 587</li>
+                  <li>• Use uma senha de app (16 caracteres)</li>
+                  <li>• Ative a verificação em 2 etapas no Gmail</li>
+                  <li>• O teste enviará um email real para verificação</li>
+                </ul>
+              </div>
+
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h5 className="font-medium text-blue-800 mb-2">Para Envio Real:</h5>
+                <p className="text-sm text-blue-700">
+                  Para envio real de emails, você precisa implementar um backend que:
+                </p>
+                <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                  <li>• Tenha as configurações SMTP no servidor</li>
+                  <li>• Faça a conexão real com o servidor SMTP</li>
+                  <li>• Retorne logs detalhados do processo</li>
+                </ul>
               </div>
             </div>
 
@@ -321,7 +380,7 @@ const SettingsPage: React.FC = () => {
                       ) : (
                         <XCircle className="mr-2 text-red-600" size={24} />
                       )}
-                      SMTP Test Result
+                      Resultado do Teste SMTP
                     </h2>
                     <button
                       onClick={() => setShowTestResult(false)}
@@ -350,20 +409,20 @@ const SettingsPage: React.FC = () => {
                             <span className="ml-2">{testResult.details.host}</span>
                           </div>
                           <div>
-                            <span className="font-medium text-gray-700">Port:</span>
+                            <span className="font-medium text-gray-700">Porta:</span>
                             <span className="ml-2">{testResult.details.port}</span>
                           </div>
                           <div>
-                            <span className="font-medium text-gray-700">User:</span>
+                            <span className="font-medium text-gray-700">Usuário:</span>
                             <span className="ml-2">{testResult.details.user}</span>
                           </div>
                           <div>
-                            <span className="font-medium text-gray-700">Test Email:</span>
+                            <span className="font-medium text-gray-700">Email de Teste:</span>
                             <span className="ml-2">{testResult.details.testEmail}</span>
                           </div>
                           {testResult.details.responseTime && (
                             <div>
-                              <span className="font-medium text-gray-700">Response Time:</span>
+                              <span className="font-medium text-gray-700">Tempo de Resposta:</span>
                               <span className="ml-2">{testResult.details.responseTime}ms</span>
                             </div>
                           )}
@@ -371,7 +430,7 @@ const SettingsPage: React.FC = () => {
                         
                         {testResult.details.logs && (
                           <div>
-                            <h4 className="font-medium text-gray-900 mb-2">Detailed Logs:</h4>
+                            <h4 className="font-medium text-gray-900 mb-2">Logs Detalhados:</h4>
                             <div className="bg-gray-100 p-4 rounded-lg max-h-60 overflow-y-auto">
                               <pre className="text-xs text-gray-800 whitespace-pre-wrap">
                                 {testResult.details.logs.join('\n')}
@@ -391,7 +450,7 @@ const SettingsPage: React.FC = () => {
         {activeTab === 'theme' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">Theme Selection</h3>
+              <h3 className="text-lg font-medium mb-4">Seleção de Tema</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {availableThemes.map((theme) => (
                   <div
@@ -430,11 +489,11 @@ const SettingsPage: React.FC = () => {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium mb-4">Custom Theme</h3>
+              <h3 className="text-lg font-medium mb-4">Tema Personalizado</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Primary Color
+                    Cor Primária
                   </label>
                   <input
                     type="color"
@@ -445,7 +504,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secondary Color
+                    Cor Secundária
                   </label>
                   <input
                     type="color"
@@ -456,7 +515,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Background Color
+                    Cor de Fundo
                   </label>
                   <input
                     type="color"
@@ -467,7 +526,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Text Color
+                    Cor do Texto
                   </label>
                   <input
                     type="color"
@@ -481,7 +540,7 @@ const SettingsPage: React.FC = () => {
                 onClick={handleCustomThemeUpdate}
                 className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
               >
-                Apply Custom Theme
+                Aplicar Tema Personalizado
               </button>
             </div>
           </div>
@@ -498,13 +557,13 @@ const SettingsPage: React.FC = () => {
             ) : (
               <>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">User Management</h3>
+                  <h3 className="text-lg font-medium">Gerenciamento de Usuários</h3>
                   <button
                     onClick={handleNewUser}
                     className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                   >
                     <Plus size={16} className="mr-2" />
-                    New User
+                    Novo Usuário
                   </button>
                 </div>
 
@@ -514,16 +573,16 @@ const SettingsPage: React.FC = () => {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            User
+                            Usuário
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Role
+                            Função
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
+                            Ações
                           </th>
                         </tr>
                       </thead>
