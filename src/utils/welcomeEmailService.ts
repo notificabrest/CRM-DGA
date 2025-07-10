@@ -12,9 +12,6 @@ export interface WelcomeEmailData {
 export class WelcomeEmailService {
   static async sendWelcomeEmail(emailData: WelcomeEmailData): Promise<boolean> {
     try {
-      // In a real application, this would make an API call to your backend
-      // which would then send the email using the configured SMTP settings
-      
       const emailContent = this.generateWelcomeEmail(emailData);
       
       console.log('Sending welcome email:', {
@@ -23,8 +20,8 @@ export class WelcomeEmailService {
         content: emailContent
       });
 
-      // Simulate API call
-      await this.mockSendEmail({
+      // Send real email via Netlify Function
+      await this.sendEmailViaAPI({
         to: emailData.userEmail,
         subject: `Bem-vindo ao CRM-DGA - Suas credenciais de acesso`,
         html: emailContent
@@ -327,19 +324,35 @@ export class WelcomeEmailService {
     `;
   }
 
-  private static async mockSendEmail(emailData: any): Promise<void> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // In a real application, this would make an HTTP request to your backend
-    // Example:
-    // const response = await fetch('/api/send-welcome-email', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(emailData)
-    // });
-    
-    // For now, just log the email that would be sent
-    console.log('📧 Welcome email would be sent:', emailData);
+  private static async sendEmailViaAPI(emailData: any): Promise<void> {
+    // Get email configuration from localStorage
+    const savedConfig = localStorage.getItem('crm-email-config');
+    if (!savedConfig) {
+      throw new Error('Email configuration not found');
+    }
+
+    const emailConfig = JSON.parse(savedConfig);
+    if (!emailConfig.enabled) {
+      throw new Error('Email notifications are disabled');
+    }
+
+    const response = await fetch('/.netlify/functions/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        emailData,
+        smtpConfig: emailConfig
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to send welcome email');
+    }
+
+    const result = await response.json();
+    console.log('Welcome email sent successfully:', result);
   }
 }

@@ -15,13 +15,37 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.2.2';
+export const CURRENT_VERSION = '1.3.0';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-01-29';
-export const BUILD_NUMBER = 14;
+export const BUILD_DATE = '2025-01-30';
+export const BUILD_NUMBER = 15;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.0': {
+    version: '1.3.0',
+    release: 'Stable',
+    buildDate: '2025-01-30',
+    buildNumber: 15,
+    features: [
+      'Sistema completo de envio de emails REAL implementado',
+      'Netlify Functions com Nodemailer para SMTP real',
+      'Teste de conexão SMTP com envio real de email',
+      'Backend serverless para produção no Netlify',
+      'Integração completa frontend-backend para emails',
+      'Emails de boas-vindas reais para novos usuários',
+      'Notificações de pipeline com envio real',
+      'Logs detalhados de envio e erros',
+      'Configuração SMTP validada em produção'
+    ],
+    bugFixes: [
+      'Substituição do sistema simulado por envio real',
+      'Correção na validação de configurações SMTP',
+      'Melhoria no tratamento de erros de envio',
+      'Otimização da performance de envio',
+      'Correção na exibição de logs de teste'
+    ]
+  },
   '1.2.2': {
     version: '1.2.2',
     release: 'Stable',

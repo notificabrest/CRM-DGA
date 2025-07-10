@@ -921,7 +921,7 @@ const SettingsPage: React.FC = () => {
                       className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed mr-3"
                     >
                       <TestTube size={16} className="mr-2" />
-                      {isTestingConnection ? 'Testando...' : 'Testar Conexão SMTP'}
+                      {isTestingConnection ? 'Enviando email de teste...' : 'Testar Conexão SMTP (Envio Real)'}
                     </button>
                     
                     {testResult && testLogs.length > 0 && (
@@ -935,12 +935,58 @@ const SettingsPage: React.FC = () => {
                     )}
                     
                     {testResult && (
-                      <div className={`mt-3 p-3 rounded-lg ${
+                      <div className={`mt-4 p-4 rounded-lg border ${
                         testResult.success 
-                          ? 'bg-green-100 text-green-800 border border-green-200' 
-                          : 'bg-red-100 text-red-800 border border-red-200'
+                          ? 'bg-green-50 text-green-800 border-green-200' 
+                          : 'bg-red-50 text-red-800 border-red-200'
                       }`}>
-                        <p className="text-sm font-medium">{testResult.message}</p>
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            {testResult.success ? (
+                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                <span className="text-white text-xs">✓</span>
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                                <span className="text-white text-xs">✗</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <p className="text-sm font-medium">{testResult.message}</p>
+                            {testResult.details?.messageId && (
+                              <p className="text-xs mt-1 opacity-75">
+                                Message ID: {testResult.details.messageId}
+                              </p>
+                            )}
+                            {testResult.details?.responseTime && (
+                              <p className="text-xs mt-1 opacity-75">
+                                Tempo de resposta: {testResult.details.responseTime}ms
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {testResult.details?.logs && testResult.details.logs.length > 0 && (
+                          <details className="mt-3">
+                            <summary className="text-xs font-medium cursor-pointer hover:underline">
+                              Ver logs detalhados ({testResult.details.logs.length} entradas)
+                            </summary>
+                            <div className="mt-2 p-3 bg-gray-900 rounded-md overflow-x-auto">
+                              <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                                {testResult.details.logs.join('\n')}
+                              </pre>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(testResult.details.logs.join('\n'));
+                                }}
+                                className="mt-2 px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs hover:bg-gray-600"
+                              >
+                                📋 Copiar logs
+                              </button>
+                            </div>
+                          </details>
+                        )}
                         
                         {/* Show detailed logs */}
                         {testResult.details && (
@@ -1015,13 +1061,19 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-blue-100 rounded-lg border border-blue-200">
-                  <h4 className="font-medium text-blue-900 mb-2">📧 Configuração para Gmail:</h4>
+                <div className="mt-6 p-4 bg-green-100 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-green-900 mb-2">🎉 Sistema de Email Real Implementado!</h4>
+                  <p className="text-sm text-green-800 mb-3">
+                    O sistema agora envia emails reais usando Netlify Functions com Nodemailer. 
+                    Configure seu SMTP e teste a conexão para começar a receber notificações.
+                  </p>
+                  <h5 className="font-medium text-green-900 mb-2">📧 Configuração para Gmail:</h5>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Servidor: smtp.gmail.com</li>
                     <li>• Porta: 587</li>
                     <li>• Use uma senha de app (não sua senha normal)</li>
                     <li>• Ative a verificação em 2 etapas no Gmail</li>
+                    <li>• O teste enviará um email real para verificação</li>
                   </ul>
                   
                   <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-300">
