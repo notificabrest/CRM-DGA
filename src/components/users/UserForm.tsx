@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { User, UserRole, UserStatus } from '../../types';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
+import { WelcomeEmailService } from '../../utils/welcomeEmailService';
+import { useEmail } from '../../context/EmailContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface UserFormProps {
@@ -11,7 +14,10 @@ interface UserFormProps {
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
   const { branches, addUser, updateUser } = useData();
+  const { user: currentUser } = useAuth();
+  const { emailConfig } = useEmail();
   const [showPassword, setShowPassword] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -23,26 +29,54 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
     pass: '' // Password field
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsCreatingUser(true);
     
-    if (user) {
-      // Only update password if it was changed
-      const updates = {
-        ...formData,
-        pass: formData.pass ? formData.pass : undefined
-      };
-      updateUser(user.id, updates);
-    } else {
-      // For new users, use the provided password or generate a default one
-      const pass = formData.pass || `${formData.role.toLowerCase()}123`;
-      addUser({
-        ...formData,
-        pass
-      });
+    try {
+      if (user) {
+        // Only update password if it was changed
+        const updates = {
+          ...formData,
+          pass: formData.pass ? formData.pass : undefined
+        };
+        updateUser(user.id, updates);
+      } else {
+        // For new users, use the provided password or generate a default one
+        const pass = formData.pass || `${formData.role.toLowerCase()}123`;
+        
+        // Create the user
+        addUser({
+          ...formData,
+          pass
+        });
+
+        // Send welcome email if email notifications are enabled
+        if (emailConfig.enabled && currentUser) {
+          try {
+            await WelcomeEmailService.sendWelcomeEmail({
+              userName: formData.name,
+              userEmail: formData.email,
+              userRole: formData.role,
+              temporaryPassword: pass,
+              systemUrl: window.location.origin,
+              createdBy: currentUser.name
+            });
+            
+            console.log('Welcome email sent successfully to:', formData.email);
+          } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Don't block user creation if email fails
+          }
+        }
+      }
+      
+      onSave();
+    } catch (error) {
+      console.error('Error creating/updating user:', error);
+    } finally {
+      setIsCreatingUser(false);
     }
-    
-    onSave();
   };
 
   return (
@@ -216,9 +250,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+          disabled={isCreatingUser}
+          className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
         >
-          {user ? 'Update User' : 'Create User'}
+          {isCreatingUser ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              {user ? 'Atualizando...' : 'Criando usuário...'}
+            </>
+          ) : (
+            user ? 'Update User' : 'Create User'
+          )}
         </button>
       </div>
     </form>

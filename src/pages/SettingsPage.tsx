@@ -632,6 +632,15 @@ const SettingsPage: React.FC = () => {
               <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 sm:p-6 rounded-xl border border-orange-200">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Adicionar Usuário</h3>
                 
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">📧 Email de Boas-vindas</h4>
+                  <p className="text-sm text-blue-800">
+                    {emailSettings.enabled 
+                      ? 'Quando um novo usuário for criado, ele receberá automaticamente um email com instruções de uso e credenciais de acesso.'
+                      : 'Para enviar emails de boas-vindas automaticamente, habilite as notificações por email na aba "Notificações".'}
+                  </p>
+                </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
