@@ -15,13 +15,33 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.4';
+export const CURRENT_VERSION = '1.3.5';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-03';
-export const BUILD_NUMBER = 19;
+export const BUILD_DATE = '2025-02-04';
+export const BUILD_NUMBER = 20;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.5': {
+    version: '1.3.5',
+    release: 'Stable',
+    buildDate: '2025-02-04',
+    buildNumber: 20,
+    features: [
+      'Correção definitiva da configuração SSL/TLS para Gmail',
+      'Detecção automática de porta SMTP (587=STARTTLS, 465=SSL)',
+      'Configuração robusta para diferentes provedores SMTP',
+      'Compatibilidade total com Gmail e outros serviços',
+      'Logs detalhados de configuração SSL/TLS'
+    ],
+    bugFixes: [
+      'Correção do erro "SSL routines:ssl3_get_record:wrong version number"',
+      'Configuração correta secure=false para porta 587 (STARTTLS)',
+      'Configuração correta secure=true para porta 465 (SSL direto)',
+      'Melhoria na configuração TLS com rejectUnauthorized=false',
+      'Otimização da compatibilidade com servidores SMTP diversos'
+    ]
+  },
   '1.3.4': {
     version: '1.3.4',
     release: 'Stable',
