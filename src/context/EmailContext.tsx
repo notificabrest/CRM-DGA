@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { EmailService, EmailConfig, PipelineNotification, defaultEmailConfig } from '../utils/emailService';
+import { EmailService, EmailConfig, PipelineNotification, SMTPTestResult, defaultEmailConfig } from '../utils/emailService';
 
 interface EmailContextType {
   emailConfig: EmailConfig;
   emailService: EmailService;
   updateEmailConfig: (config: Partial<EmailConfig>) => void;
   sendPipelineNotification: (notification: PipelineNotification) => Promise<boolean>;
-  testEmailConnection: () => Promise<boolean>;
+  testEmailConnection: () => Promise<SMTPTestResult>;
   isTestingConnection: boolean;
 }
 
@@ -62,7 +62,7 @@ export const EmailProvider: React.FC<EmailProviderProps> = ({ children }) => {
     return await emailService.sendPipelineNotification(notification);
   };
 
-  const testEmailConnection = async (): Promise<boolean> => {
+  const testEmailConnection = async (): Promise<SMTPTestResult> => {
     setIsTestingConnection(true);
     try {
       const result = await emailService.testConnection();

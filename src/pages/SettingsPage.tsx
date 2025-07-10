@@ -68,6 +68,8 @@ const SettingsPage: React.FC = () => {
   });
 
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [testLogs, setTestLogs] = useState<string[]>([]);
+  const [showTestLogs, setShowTestLogs] = useState(false);
 
   useEffect(() => {
     setHeaderTitle(currentTheme.headerName || 'SISTEMA');
@@ -153,23 +155,25 @@ const SettingsPage: React.FC = () => {
 
   const handleTestEmailConnection = async () => {
     setTestResult(null);
+    setTestLogs([]);
+    setShowTestLogs(false);
     
     // Update config before testing
     updateEmailConfig(emailSettings);
     
     try {
-      const success = await testEmailConnection();
+      const result = await testEmailConnection();
       setTestResult({
-        success,
-        message: success 
-          ? 'Conexão SMTP testada com sucesso!' 
-          : 'Falha na conexão SMTP. Verifique as configurações.'
+        success: result.success,
+        message: result.message
       });
+      setTestLogs(result.details.logs);
     } catch (error) {
       setTestResult({
         success: false,
-        message: 'Erro ao testar conexão SMTP.'
+        message: 'Erro inesperado ao testar conexão SMTP.'
       });
+      setTestLogs([`Erro: ${error}`]);
     }
   };
 
@@ -914,11 +918,21 @@ const SettingsPage: React.FC = () => {
                     <button
                       onClick={handleTestEmailConnection}
                       disabled={isTestingConnection}
-                      className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed mr-3"
                     >
                       <TestTube size={16} className="mr-2" />
                       {isTestingConnection ? 'Testando...' : 'Testar Conexão SMTP'}
                     </button>
+                    
+                    {testResult && testLogs.length > 0 && (
+                      <button
+                        onClick={() => setShowTestLogs(!showTestLogs)}
+                        className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
+                      >
+                        <Server size={14} className="mr-2" />
+                        {showTestLogs ? 'Ocultar Logs' : 'Ver Logs Detalhados'}
+                      </button>
+                    )}
                     
                     {testResult && (
                       <div className={`mt-3 p-3 rounded-lg ${
@@ -927,6 +941,32 @@ const SettingsPage: React.FC = () => {
                           : 'bg-red-100 text-red-800 border border-red-200'
                       }`}>
                         <p className="text-sm font-medium">{testResult.message}</p>
+                      </div>
+                    )}
+                    
+                    {showTestLogs && testLogs.length > 0 && (
+                      <div className="mt-4 p-4 bg-gray-900 rounded-lg border border-gray-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-medium text-white flex items-center">
+                            <Server size={16} className="mr-2" />
+                            Logs do Teste SMTP
+                          </h4>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(testLogs.join('\n'))}
+                            className="text-xs text-gray-400 hover:text-white"
+                          >
+                            Copiar Logs
+                          </button>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                            {testLogs.map((log, index) => (
+                              <div key={index} className="mb-1">
+                                {log}
+                              </div>
+                            ))}
+                          </pre>
+                        </div>
                       </div>
                     )}
                   </div>
