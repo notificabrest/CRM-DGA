@@ -38,24 +38,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
         // Only update password if it was changed
         const updates = {
           ...formData,
-          password: formData.pass || undefined
+          password: formData.pass ? formData.pass : undefined
         };
         updateUser(user.id, updates);
       } else {
         // For new users, use the provided password or generate a default one
-        const password = formData.pass || `${formData.role.toLowerCase()}123`;
-        
-        console.log('🚀 Criando novo usuário:', {
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          password: password
-        });
+        const pass = formData.pass || `${formData.role.toLowerCase()}123`;
         
         // Create the user
         addUser({
           ...formData,
-          password: password
+          password: pass
         });
 
         // Send welcome email if email notifications are enabled
@@ -66,7 +59,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
               userName: formData.name,
               userEmail: formData.email,
               userRole: formData.role,
-              temporaryPassword: password,
+              temporaryPassword: pass,
               systemUrl: window.location.origin,
               createdBy: currentUser.name
             });
@@ -90,7 +83,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
       onSave();
     } catch (error) {
       console.error('Error creating/updating user:', error);
-      alert('Erro ao criar usuário: ' + (error as Error).message);
     } finally {
       setIsCreatingUser(false);
     }
