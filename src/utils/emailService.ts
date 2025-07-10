@@ -87,7 +87,27 @@ export class EmailService {
         })
       });
 
-      const result = await response.json();
+      // Check if response is ok and has content
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText || 'Erro na requisição'}`);
+      }
+
+      // Check if response has content
+      const responseText = await response.text();
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Resposta vazia do servidor');
+      }
+
+      // Try to parse JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao fazer parse do JSON:', responseText);
+        throw new Error(`Resposta inválida do servidor: ${responseText.substring(0, 100)}...`);
+      }
+
       return result;
 
     } catch (error) {

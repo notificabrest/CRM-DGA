@@ -336,23 +336,46 @@ export class WelcomeEmailService {
       throw new Error('Email notifications are disabled');
     }
 
-    const response = await fetch('/.netlify/functions/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        emailData,
-        smtpConfig: emailConfig
-      })
-    });
+    try {
+      const response = await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailData,
+          smtpConfig: emailConfig
+        })
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to send welcome email');
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = 'Failed to send welcome email';
+        
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = `HTTP ${response.status}: ${errorText || 'Erro na requisição'}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const responseText = await response.text();
+      if (responseText && responseText.trim() !== '') {
+        try {
+          const result = JSON.parse(responseText);
+          console.log('Welcome email sent successfully:', result);
+        } catch {
+          console.log('Welcome email sent successfully (no JSON response)');
+        }
+      } else {
+        console.log('Welcome email sent successfully (empty response)');
+      }
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+      throw error;
     }
-
-    const result = await response.json();
-    console.log('Welcome email sent successfully:', result);
   }
 }
