@@ -1,3 +1,4 @@
+// Import nodemailer - dependency managed by main package.json
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {

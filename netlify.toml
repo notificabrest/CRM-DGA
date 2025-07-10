@@ -1,11 +1,12 @@
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm install && npm run build"
   environment = { NODE_VERSION = "18" }
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  external_node_modules = ["nodemailer"]
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
