@@ -2,7 +2,7 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
-  console.log('🚀 SMTP Test Function called - Version 1.3.3');
+  console.log('🚀 SMTP Test Function called - Version 1.3.4');
   console.log('Method:', event.httpMethod);
   console.log('Headers:', JSON.stringify(event.headers, null, 2));
   console.log('Path:', event.path);
@@ -178,7 +178,7 @@ exports.handler = async (event, context) => {
     log('🔌 Conectando ao servidor SMTP...');
 
     // Create transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: smtpConfig.smtpHost,
       port: parseInt(smtpConfig.smtpPort),
       secure: smtpConfig.smtpSecure,

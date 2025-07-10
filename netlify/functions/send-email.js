@@ -2,7 +2,7 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async (event, context) => {
-  console.log('📧 Send Email Function called - Version 1.3.3');
+  console.log('📧 Send Email Function called - Version 1.3.4');
   console.log('Method:', event.httpMethod);
   console.log('Headers:', JSON.stringify(event.headers, null, 2));
   console.log('Path:', event.path);
@@ -123,7 +123,7 @@ exports.handler = async (event, context) => {
     console.log(`Host: ${smtpHost}, Port: ${smtpPort}, User: ${smtpUser}`);
 
     // Create transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: parseInt(smtpPort),
       secure: smtpSecure, // true for 465, false for other ports

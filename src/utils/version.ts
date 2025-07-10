@@ -15,13 +15,33 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.3';
+export const CURRENT_VERSION = '1.3.4';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-02';
-export const BUILD_NUMBER = 18;
+export const BUILD_DATE = '2025-02-03';
+export const BUILD_NUMBER = 19;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.4': {
+    version: '1.3.4',
+    release: 'Stable',
+    buildDate: '2025-02-03',
+    buildNumber: 19,
+    features: [
+      'Correção definitiva do método nodemailer nas Netlify Functions',
+      'Método createTransport corrigido (era createTransporter)',
+      'Sistema de email SMTP totalmente funcional',
+      'Validação completa de métodos do nodemailer',
+      'Logs detalhados para debug de conexão SMTP'
+    ],
+    bugFixes: [
+      'Correção do erro "nodemailer.createTransporter is not a function"',
+      'Método correto nodemailer.createTransport implementado',
+      'Resolução de problemas de API do nodemailer',
+      'Melhoria na importação e uso do nodemailer',
+      'Otimização do tratamento de erros de conexão SMTP'
+    ]
+  },
   '1.3.3': {
     version: '1.3.3',
     release: 'Stable',
