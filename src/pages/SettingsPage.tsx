@@ -24,6 +24,8 @@ const SettingsPage: React.FC = () => {
   const [testResult, setTestResult] = useState<any>(null);
   const [showTestResult, setShowTestResult] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   // Pipeline status management
   const [newStatus, setNewStatus] = useState({ name: '', color: '#3B82F6' });
@@ -40,6 +42,43 @@ const SettingsPage: React.FC = () => {
     logo: currentTheme.logo || '',
   });
 
+  // Function to save all settings
+  const handleSaveAllSettings = async () => {
+    setIsSaving(true);
+    setSaveMessage(null);
+    
+    try {
+      // Save theme customizations
+      customizeTheme(customTheme);
+      setHeaderName(customTheme.headerName);
+      setSidebarName(customTheme.sidebarName);
+      setLogo(customTheme.logo);
+      
+      // Save email configuration
+      // Email config is automatically saved via updateEmailConfig
+      
+      // Simulate save delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSaveMessage('Configurações salvas com sucesso!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage(null);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
+      setSaveMessage('Erro ao salvar configurações. Tente novamente.');
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSaveMessage(null);
+      }, 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   const handleThemeChange = (theme: any) => {
     setTheme(theme);
   };
@@ -153,10 +192,34 @@ const SettingsPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-blue-600">Configurações do Sistema</h1>
           <p className="text-gray-600 mt-1">Personalize e configure seu CRM</p>
         </div>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center">
-          <Save size={16} className="mr-2" />
-          Salvar Alterações
-        </button>
+        <div className="flex items-center space-x-3">
+          {saveMessage && (
+            <div className={`px-3 py-2 rounded-md text-sm font-medium ${
+              saveMessage.includes('sucesso') 
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              {saveMessage.includes('sucesso') ? (
+                <CheckCircle size={16} className="inline mr-2" />
+              ) : (
+                <XCircle size={16} className="inline mr-2" />
+              )}
+              {saveMessage}
+            </div>
+          )}
+          <button 
+            onClick={handleSaveAllSettings}
+            disabled={isSaving}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+              <Loader size={16} className="mr-2 animate-spin" />
+            ) : (
+              <Save size={16} className="mr-2" />
+            )}
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+          </button>
+        </div>
       </div>
 
       {/* Tab Navigation */}
