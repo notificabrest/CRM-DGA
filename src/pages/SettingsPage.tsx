@@ -2,12 +2,14 @@ import React, { useState, useRef } from 'react';
 import { 
   Settings, Palette, Info, Users, Mail, Eye, EyeOff, Upload, X, 
   Check, AlertCircle, Loader, Save, Image, Globe, Monitor, Smartphone,
-  Building2, CreditCard, Bell, Shield, Zap, Link, Download, FileText
+  Building2, CreditCard, Bell, Shield, Zap, Link, Download, FileText,
+  CheckCircle, XCircle, Cloud, MessageSquare
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { useEmail } from '../context/EmailContext';
+import { useIntegrations } from '../context/IntegrationContext';
 import UserForm from '../components/users/UserForm';
 import VersionInfo from '../components/common/VersionInfo';
 import { UserRole } from '../types';
@@ -17,6 +19,20 @@ const SettingsPage: React.FC = () => {
   const { users, pipelineStatuses, addUser, updateUser, deleteUser, addPipelineStatus, updatePipelineStatus, deletePipelineStatus } = useData();
   const { user, hasPermission } = useAuth();
   const { emailConfig, updateEmailConfig, testEmailConnection, isTestingConnection } = useEmail();
+  const {
+    ldapConfig,
+    googleConfig,
+    microsoftConfig,
+    whatsappConfig,
+    updateLDAPConfig,
+    updateGoogleConfig,
+    updateMicrosoftConfig,
+    updateWhatsAppConfig,
+    testLDAPConnection,
+    testGoogleConnection,
+    testMicrosoftConnection,
+    testWhatsAppConnection
+  } = useIntegrations();
   
   const [activeTab, setActiveTab] = useState('notifications');
   const [showUserForm, setShowUserForm] = useState(false);
@@ -40,6 +56,8 @@ const SettingsPage: React.FC = () => {
   const [saveMessage, setSaveMessage] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(currentTheme.logo || null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
+  const [integrationTests, setIntegrationTests] = useState<{ [key: string]: any }>({});
+  const [testingIntegration, setTestingIntegration] = useState<string | null>(null);
   
   // Integrations state
   const [integrations, setIntegrations] = useState(() => {
@@ -84,8 +102,6 @@ const SettingsPage: React.FC = () => {
     }
   });
   
-  const [testingIntegration, setTestingIntegration] = useState<string | null>(null);
-  
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,6 +118,44 @@ const SettingsPage: React.FC = () => {
       document.getElementsByTagName('head')[0].appendChild(link);
     }
   }, []);
+
+  const handleTestIntegration = async (type: 'ldap' | 'google' | 'microsoft' | 'whatsapp') => {
+    setTestingIntegration(type);
+    
+    try {
+      let result;
+      switch (type) {
+        case 'ldap':
+          result = await testLDAPConnection();
+          break;
+        case 'google':
+          result = await testGoogleConnection();
+          break;
+        case 'microsoft':
+          result = await testMicrosoftConnection();
+          break;
+        case 'whatsapp':
+          result = await testWhatsAppConnection();
+          break;
+      }
+      
+      setIntegrationTests(prev => ({
+        ...prev,
+        [type]: result
+      }));
+    } catch (error) {
+      setIntegrationTests(prev => ({
+        ...prev,
+        [type]: {
+          success: false,
+          message: `Erro no teste: ${(error as Error).message}`,
+          timestamp: new Date().toISOString()
+        }
+      }));
+    } finally {
+      setTestingIntegration(null);
+    }
+  };
 
   const handleSaveSettings = async () => {
     setSaveStatus('saving');
@@ -400,6 +454,7 @@ const SettingsPage: React.FC = () => {
       { id: 'usuarios', label: 'Usuários', icon: Users, color: 'bg-orange-500' }
     ] : []),
     { id: 'integracoes', label: 'Integrações', icon: Zap, color: 'bg-cyan-500' },
+    { id: 'integrations', label: 'Integrações', icon: Zap, color: 'bg-cyan-500' },
     { id: 'notifications', label: 'Notificações', icon: Mail, color: 'bg-pink-500' }
   ];
 
@@ -1174,6 +1229,480 @@ const SettingsPage: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
                     />
                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'integrations':
+        return (
+          <div className="space-y-4 sm:space-y-6">
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+                Integrações Disponíveis
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
+                Configure integrações com sistemas externos para expandir as funcionalidades do CRM.
+              </p>
+            </div>
+
+            {/* LDAP/Active Directory */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                <div className="flex items-center mb-2 sm:mb-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                    <Building2 size={16} className="text-white sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">LDAP/Active Directory</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Integração com diretório corporativo</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ldapConfig.enabled}
+                    onChange={(e) => updateLDAPConfig({ enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {ldapConfig.enabled && (
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Servidor LDAP*
+                      </label>
+                      <input
+                        type="text"
+                        value={ldapConfig.server}
+                        onChange={(e) => updateLDAPConfig({ server: e.target.value })}
+                        placeholder="ldap.empresa.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Porta
+                      </label>
+                      <input
+                        type="number"
+                        value={ldapConfig.port}
+                        onChange={(e) => updateLDAPConfig({ port: parseInt(e.target.value) })}
+                        placeholder="389"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Base DN*
+                      </label>
+                      <input
+                        type="text"
+                        value={ldapConfig.baseDN}
+                        onChange={(e) => updateLDAPConfig({ baseDN: e.target.value })}
+                        placeholder="dc=empresa,dc=com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Bind DN
+                      </label>
+                      <input
+                        type="text"
+                        value={ldapConfig.bindDN}
+                        onChange={(e) => updateLDAPConfig({ bindDN: e.target.value })}
+                        placeholder="cn=admin,dc=empresa,dc=com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="ldap-ssl"
+                      checked={ldapConfig.useSSL}
+                      onChange={(e) => updateLDAPConfig({ useSSL: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="ldap-ssl" className="ml-2 text-xs sm:text-sm text-gray-700">
+                      Usar SSL/TLS
+                    </label>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleTestIntegration('ldap')}
+                      disabled={testingIntegration === 'ldap'}
+                      className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-xs sm:text-sm"
+                    >
+                      {testingIntegration === 'ldap' ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <Shield size={14} className="mr-2" />
+                          Testar Conexão
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {integrationTests.ldap && (
+                    <div className={`p-3 rounded-lg text-xs sm:text-sm ${
+                      integrationTests.ldap.success 
+                        ? 'bg-green-50 border border-green-200 text-green-800' 
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      <div className="flex items-center">
+                        {integrationTests.ldap.success ? (
+                          <CheckCircle size={14} className="mr-2 flex-shrink-0" />
+                        ) : (
+                          <XCircle size={14} className="mr-2 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{integrationTests.ldap.message}</span>
+                      </div>
+                      {integrationTests.ldap.details && (
+                        <div className="mt-2 text-xs">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(integrationTests.ldap.details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Google Workspace */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                <div className="flex items-center mb-2 sm:mb-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500 rounded-lg flex items-center justify-center mr-3">
+                    <Mail size={16} className="text-white sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">Google Workspace</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Gmail, Calendar e Drive</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={googleConfig.enabled}
+                    onChange={(e) => updateGoogleConfig({ enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+
+              {googleConfig.enabled && (
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Client ID*
+                      </label>
+                      <input
+                        type="text"
+                        value={googleConfig.clientId}
+                        onChange={(e) => updateGoogleConfig({ clientId: e.target.value })}
+                        placeholder="123456789-abc.apps.googleusercontent.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Client Secret*
+                      </label>
+                      <input
+                        type="password"
+                        value={googleConfig.clientSecret}
+                        onChange={(e) => updateGoogleConfig({ clientSecret: e.target.value })}
+                        placeholder="GOCSPX-..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Domínio da Empresa
+                      </label>
+                      <input
+                        type="text"
+                        value={googleConfig.domain}
+                        onChange={(e) => updateGoogleConfig({ domain: e.target.value })}
+                        placeholder="empresa.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleTestIntegration('google')}
+                      disabled={testingIntegration === 'google'}
+                      className="flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 text-xs sm:text-sm"
+                    >
+                      {testingIntegration === 'google' ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <Globe size={14} className="mr-2" />
+                          Testar API
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {integrationTests.google && (
+                    <div className={`p-3 rounded-lg text-xs sm:text-sm ${
+                      integrationTests.google.success 
+                        ? 'bg-green-50 border border-green-200 text-green-800' 
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      <div className="flex items-center">
+                        {integrationTests.google.success ? (
+                          <CheckCircle size={14} className="mr-2 flex-shrink-0" />
+                        ) : (
+                          <XCircle size={14} className="mr-2 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{integrationTests.google.message}</span>
+                      </div>
+                      {integrationTests.google.details && (
+                        <div className="mt-2 text-xs">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(integrationTests.google.details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Microsoft 365 */}
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                <div className="flex items-center mb-2 sm:mb-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                    <Building2 size={16} className="text-white sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">Microsoft 365</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">Outlook, Teams e SharePoint</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={microsoftConfig.enabled}
+                    onChange={(e) => updateMicrosoftConfig({ enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {microsoftConfig.enabled && (
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Tenant ID*
+                      </label>
+                      <input
+                        type="text"
+                        value={microsoftConfig.tenantId}
+                        onChange={(e) => updateMicrosoftConfig({ tenantId: e.target.value })}
+                        placeholder="12345678-1234-1234-1234-123456789012"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Client ID*
+                      </label>
+                      <input
+                        type="text"
+                        value={microsoftConfig.clientId}
+                        onChange={(e) => updateMicrosoftConfig({ clientId: e.target.value })}
+                        placeholder="12345678-1234-1234-1234-123456789012"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Client Secret*
+                      </label>
+                      <input
+                        type="password"
+                        value={microsoftConfig.clientSecret}
+                        onChange={(e) => updateMicrosoftConfig({ clientSecret: e.target.value })}
+                        placeholder="Client Secret Value"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleTestIntegration('microsoft')}
+                      disabled={testingIntegration === 'microsoft'}
+                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-xs sm:text-sm"
+                    >
+                      {testingIntegration === 'microsoft' ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <Cloud size={14} className="mr-2" />
+                          Testar Azure AD
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {integrationTests.microsoft && (
+                    <div className={`p-3 rounded-lg text-xs sm:text-sm ${
+                      integrationTests.microsoft.success 
+                        ? 'bg-green-50 border border-green-200 text-green-800' 
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      <div className="flex items-center">
+                        {integrationTests.microsoft.success ? (
+                          <CheckCircle size={14} className="mr-2 flex-shrink-0" />
+                        ) : (
+                          <XCircle size={14} className="mr-2 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{integrationTests.microsoft.message}</span>
+                      </div>
+                      {integrationTests.microsoft.details && (
+                        <div className="mt-2 text-xs">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(integrationTests.microsoft.details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* WhatsApp Business */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                <div className="flex items-center mb-2 sm:mb-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                    <MessageSquare size={16} className="text-white sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-semibold text-gray-900">WhatsApp Business</h4>
+                    <p className="text-xs sm:text-sm text-gray-600">API do WhatsApp Business</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={whatsappConfig.enabled}
+                    onChange={(e) => updateWhatsAppConfig({ enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                </label>
+              </div>
+
+              {whatsappConfig.enabled && (
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Phone Number ID*
+                      </label>
+                      <input
+                        type="text"
+                        value={whatsappConfig.phoneNumberId}
+                        onChange={(e) => updateWhatsAppConfig({ phoneNumberId: e.target.value })}
+                        placeholder="123456789012345"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Access Token*
+                      </label>
+                      <input
+                        type="password"
+                        value={whatsappConfig.accessToken}
+                        onChange={(e) => updateWhatsAppConfig({ accessToken: e.target.value })}
+                        placeholder="EAAxxxxxxxxx"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                        Webhook URL
+                      </label>
+                      <input
+                        type="url"
+                        value={whatsappConfig.webhookUrl}
+                        onChange={(e) => updateWhatsAppConfig({ webhookUrl: e.target.value })}
+                        placeholder="https://seusite.com/webhook/whatsapp"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={() => handleTestIntegration('whatsapp')}
+                      disabled={testingIntegration === 'whatsapp'}
+                      className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 text-xs sm:text-sm"
+                    >
+                      {testingIntegration === 'whatsapp' ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Testando...
+                        </>
+                      ) : (
+                        <>
+                          <MessageSquare size={14} className="mr-2" />
+                          Testar API
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {integrationTests.whatsapp && (
+                    <div className={`p-3 rounded-lg text-xs sm:text-sm ${
+                      integrationTests.whatsapp.success 
+                        ? 'bg-green-50 border border-green-200 text-green-800' 
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      <div className="flex items-center">
+                        {integrationTests.whatsapp.success ? (
+                          <CheckCircle size={14} className="mr-2 flex-shrink-0" />
+                        ) : (
+                          <XCircle size={14} className="mr-2 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{integrationTests.whatsapp.message}</span>
+                      </div>
+                      {integrationTests.whatsapp.details && (
+                        <div className="mt-2 text-xs">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(integrationTests.whatsapp.details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
