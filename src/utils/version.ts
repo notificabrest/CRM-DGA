@@ -15,13 +15,35 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.6';
+export const CURRENT_VERSION = '1.3.7';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-05';
-export const BUILD_NUMBER = 21;
+export const BUILD_DATE = '2025-02-06';
+export const BUILD_NUMBER = 22;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.7': {
+    version: '1.3.7',
+    release: 'Stable',
+    buildDate: '2025-02-06',
+    buildNumber: 22,
+    features: [
+      'Sistema de upload de logo funcional implementado',
+      'Upload de favicon adicionado ao sistema',
+      'Suporte a imagens PNG, JPG, JPEG e SVG',
+      'Preview em tempo real das imagens carregadas',
+      'Validação de tamanho e formato de arquivo',
+      'Armazenamento local das imagens em base64',
+      'Interface melhorada para gerenciamento de assets'
+    ],
+    bugFixes: [
+      'Correção do botão de upload de logo que não funcionava',
+      'Melhoria na validação de arquivos de imagem',
+      'Correção no salvamento de configurações visuais',
+      'Otimização do carregamento de imagens',
+      'Correção na aplicação do favicon no sistema'
+    ]
+  },
   '1.3.6': {
     version: '1.3.6',
     release: 'Stable',
