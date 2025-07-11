@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { DataProvider } from './context/DataContext';
 import { EmailProvider } from './context/EmailContext';
+import { IntegrationProvider } from './context/IntegrationContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -69,9 +70,11 @@ function App() {
           <ThemeProvider>
             <DataProvider>
               <EmailProvider>
-                <div className="min-h-screen bg-gray-50 text-gray-900">
-                  <AppRoutes />
-                </div>
+                <IntegrationProvider>
+                  <div className="min-h-screen bg-gray-50 text-gray-900">
+                    <AppRoutes />
+                  </div>
+                </IntegrationProvider>
               </EmailProvider>
             </DataProvider>
           </ThemeProvider>
