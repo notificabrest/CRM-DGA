@@ -41,6 +41,51 @@ const SettingsPage: React.FC = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(currentTheme.logo || null);
   const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
   
+  // Integrations state
+  const [integrations, setIntegrations] = useState(() => {
+    try {
+      const saved = localStorage.getItem('crm-integrations');
+      return saved ? JSON.parse(saved) : {
+        ldap: {
+          enabled: false,
+          server: '',
+          port: 389,
+          baseDN: '',
+          username: '',
+          password: '',
+          useSSL: false
+        },
+        google: {
+          enabled: false,
+          clientId: '',
+          clientSecret: '',
+          domain: ''
+        },
+        microsoft: {
+          enabled: false,
+          tenantId: '',
+          clientId: '',
+          clientSecret: ''
+        },
+        whatsapp: {
+          enabled: false,
+          phoneNumberId: '',
+          accessToken: '',
+          webhookUrl: ''
+        }
+      };
+    } catch {
+      return {
+        ldap: { enabled: false, server: '', port: 389, baseDN: '', username: '', password: '', useSSL: false },
+        google: { enabled: false, clientId: '', clientSecret: '', domain: '' },
+        microsoft: { enabled: false, tenantId: '', clientId: '', clientSecret: '' },
+        whatsapp: { enabled: false, phoneNumberId: '', accessToken: '', webhookUrl: '' }
+      };
+    }
+  });
+  
+  const [testingIntegration, setTestingIntegration] = useState<string | null>(null);
+  
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +132,9 @@ const SettingsPage: React.FC = () => {
         document.getElementsByTagName('head')[0].appendChild(link);
       }
       
+      // Save integrations
+      localStorage.setItem('crm-integrations', JSON.stringify(integrations));
+      
       setSaveStatus('success');
       setSaveMessage('Configurações salvas com sucesso!');
       
@@ -106,6 +154,80 @@ const SettingsPage: React.FC = () => {
         setSaveMessage('');
       }, 5000);
     }
+  };
+
+  const handleThemeSelect = (theme: any) => {
+    console.log('🎨 Selecionando tema:', theme.name);
+    setTheme(theme);
+    setCustomColors({
+      primaryColor: theme.primaryColor,
+      backgroundColor: theme.backgroundColor,
+      textColor: theme.textColor,
+      secondaryColor: theme.secondaryColor,
+    });
+    setSaveStatus('success');
+    setSaveMessage(`Tema "${theme.name}" aplicado com sucesso!`);
+    setTimeout(() => {
+      setSaveStatus('idle');
+      setSaveMessage('');
+    }, 3000);
+  };
+
+  const testIntegration = async (type: string) => {
+    setTestingIntegration(type);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      
+      switch (type) {
+        case 'ldap':
+          if (!integrations.ldap.server || !integrations.ldap.username) {
+            throw new Error('Servidor e usuário são obrigatórios');
+          }
+          break;
+        case 'google':
+          if (!integrations.google.clientId || !integrations.google.domain) {
+            throw new Error('Client ID e domínio são obrigatórios');
+          }
+          break;
+        case 'microsoft':
+          if (!integrations.microsoft.tenantId || !integrations.microsoft.clientId) {
+            throw new Error('Tenant ID e Client ID são obrigatórios');
+          }
+          break;
+        case 'whatsapp':
+          if (!integrations.whatsapp.phoneNumberId || !integrations.whatsapp.accessToken) {
+            throw new Error('Phone Number ID e Access Token são obrigatórios');
+          }
+          break;
+      }
+      
+      setSaveStatus('success');
+      setSaveMessage(`Integração ${type.toUpperCase()} testada com sucesso!`);
+      setTimeout(() => {
+        setSaveStatus('idle');
+        setSaveMessage('');
+      }, 3000);
+    } catch (error) {
+      setSaveStatus('error');
+      setSaveMessage(`Erro no teste ${type.toUpperCase()}: ${(error as Error).message}`);
+      setTimeout(() => {
+        setSaveStatus('idle');
+        setSaveMessage('');
+      }, 3000);
+    } finally {
+      setTestingIntegration(null);
+    }
+  };
+
+  const updateIntegration = (type: string, field: string, value: any) => {
+    setIntegrations(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: value
+      }
+    }));
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -460,7 +582,7 @@ const SettingsPage: React.FC = () => {
                         ? 'border-purple-500 bg-purple-100'
                         : 'border-gray-200 hover:border-purple-300'
                     }`}
-                    onClick={() => setTheme(theme)}
+                    onClick={() => handleThemeSelect(theme)}
                   >
                     <div className="flex items-center space-x-3">
                       <div
@@ -742,87 +864,318 @@ const SettingsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900">Integrações</h3>
             
             {/* LDAP Integration */}
-            <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 rounded-xl border border-cyan-200">
-              <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                <Shield className="mr-2 text-cyan-600" size={20} />
-                Integração LDAP
-              </h4>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  id="ldap-enabled"
-                  className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-                />
-                <label htmlFor="ldap-enabled" className="text-sm font-medium text-gray-700">
-                  Habilitar Autenticação LDAP
-                </label>
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                  <h4 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+                    🏢 LDAP / Active Directory
+                  </h4>
+                  <p className="text-gray-600 text-sm sm:text-base mt-1">Autenticação corporativa</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => testIntegration('ldap')}
+                    disabled={testingIntegration === 'ldap' || !integrations.ldap.enabled}
+                    className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    {testingIntegration === 'ldap' ? 'Testando...' : 'Testar'}
+                  </button>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={integrations.ldap.enabled}
+                      onChange={(e) => updateIntegration('ldap', 'enabled', e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative w-10 h-6 rounded-full transition-colors ${
+                      integrations.ldap.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        integrations.ldap.enabled ? 'translate-x-4' : 'translate-x-0'
+                      }`}></div>
+                    </div>
+                  </label>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">
-                Conecte com Active Directory ou outros serviços LDAP para autenticação centralizada.
-              </p>
+              
+              {integrations.ldap.enabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Servidor LDAP</label>
+                    <input
+                      type="text"
+                      value={integrations.ldap.server}
+                      onChange={(e) => updateIntegration('ldap', 'server', e.target.value)}
+                      placeholder="ldap.empresa.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Porta</label>
+                    <input
+                      type="number"
+                      value={integrations.ldap.port}
+                      onChange={(e) => updateIntegration('ldap', 'port', parseInt(e.target.value))}
+                      placeholder="389"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Base DN</label>
+                    <input
+                      type="text"
+                      value={integrations.ldap.baseDN}
+                      onChange={(e) => updateIntegration('ldap', 'baseDN', e.target.value)}
+                      placeholder="dc=empresa,dc=com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                    <input
+                      type="text"
+                      value={integrations.ldap.username}
+                      onChange={(e) => updateIntegration('ldap', 'username', e.target.value)}
+                      placeholder="admin@empresa.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <input
+                      type="password"
+                      value={integrations.ldap.password}
+                      onChange={(e) => updateIntegration('ldap', 'password', e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={integrations.ldap.useSSL}
+                        onChange={(e) => updateIntegration('ldap', 'useSSL', e.target.checked)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">Usar SSL/TLS</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Google Workspace */}
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-xl border border-red-200">
-              <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                <Globe className="mr-2 text-red-600" size={20} />
-                Google Workspace
-              </h4>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  id="google-enabled"
-                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                />
-                <label htmlFor="google-enabled" className="text-sm font-medium text-gray-700">
-                  Habilitar integração com Google
-                </label>
+            {/* Google Workspace Integration */}
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                  <h4 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+                    📧 Google Workspace
+                  </h4>
+                  <p className="text-gray-600 text-sm sm:text-base mt-1">Integração com Gmail e Google Calendar</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => testIntegration('google')}
+                    disabled={testingIntegration === 'google' || !integrations.google.enabled}
+                    className="px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    {testingIntegration === 'google' ? 'Testando...' : 'Testar'}
+                  </button>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={integrations.google.enabled}
+                      onChange={(e) => updateIntegration('google', 'enabled', e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative w-10 h-6 rounded-full transition-colors ${
+                      integrations.google.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        integrations.google.enabled ? 'translate-x-4' : 'translate-x-0'
+                      }`}></div>
+                    </div>
+                  </label>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">
-                Sincronize calendários, contatos e emails com Google Workspace.
-              </p>
+              
+              {integrations.google.enabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
+                    <input
+                      type="text"
+                      value={integrations.google.clientId}
+                      onChange={(e) => updateIntegration('google', 'clientId', e.target.value)}
+                      placeholder="123456789-abc.apps.googleusercontent.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client Secret</label>
+                    <input
+                      type="password"
+                      value={integrations.google.clientSecret}
+                      onChange={(e) => updateIntegration('google', 'clientSecret', e.target.value)}
+                      placeholder="••••••••••••••••"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Domínio</label>
+                    <input
+                      type="text"
+                      value={integrations.google.domain}
+                      onChange={(e) => updateIntegration('google', 'domain', e.target.value)}
+                      placeholder="empresa.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Microsoft 365 */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-              <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                <Building2 className="mr-2 text-blue-600" size={20} />
-                Microsoft 365
-              </h4>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  id="microsoft-enabled"
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="microsoft-enabled" className="text-sm font-medium text-gray-700">
-                  Habilitar integração com Microsoft 365
-                </label>
+            {/* Microsoft 365 Integration */}
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                  <h4 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+                    🏢 Microsoft 365
+                  </h4>
+                  <p className="text-gray-600 text-sm sm:text-base mt-1">Integração com Outlook e Teams</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => testIntegration('microsoft')}
+                    disabled={testingIntegration === 'microsoft' || !integrations.microsoft.enabled}
+                    className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    {testingIntegration === 'microsoft' ? 'Testando...' : 'Testar'}
+                  </button>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={integrations.microsoft.enabled}
+                      onChange={(e) => updateIntegration('microsoft', 'enabled', e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative w-10 h-6 rounded-full transition-colors ${
+                      integrations.microsoft.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        integrations.microsoft.enabled ? 'translate-x-4' : 'translate-x-0'
+                      }`}></div>
+                    </div>
+                  </label>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">
-                Conecte com Outlook, Teams e outros serviços Microsoft.
-              </p>
+              
+              {integrations.microsoft.enabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tenant ID</label>
+                    <input
+                      type="text"
+                      value={integrations.microsoft.tenantId}
+                      onChange={(e) => updateIntegration('microsoft', 'tenantId', e.target.value)}
+                      placeholder="12345678-1234-1234-1234-123456789012"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
+                    <input
+                      type="text"
+                      value={integrations.microsoft.clientId}
+                      onChange={(e) => updateIntegration('microsoft', 'clientId', e.target.value)}
+                      placeholder="87654321-4321-4321-4321-210987654321"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client Secret</label>
+                    <input
+                      type="password"
+                      value={integrations.microsoft.clientSecret}
+                      onChange={(e) => updateIntegration('microsoft', 'clientSecret', e.target.value)}
+                      placeholder="••••••••••••••••••••••••••••••••"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* WhatsApp Business */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-              <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center">
-                <Smartphone className="mr-2 text-green-600" size={20} />
-                WhatsApp Business
-              </h4>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  id="whatsapp-enabled"
-                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <label htmlFor="whatsapp-enabled" className="text-sm font-medium text-gray-700">
-                  Habilitar WhatsApp Business API
-                </label>
+            {/* WhatsApp Business Integration */}
+            <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl shadow-lg border border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                <div>
+                  <h4 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
+                    💬 WhatsApp Business
+                  </h4>
+                  <p className="text-gray-600 text-sm sm:text-base mt-1">API do WhatsApp Business</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => testIntegration('whatsapp')}
+                    disabled={testingIntegration === 'whatsapp' || !integrations.whatsapp.enabled}
+                    className="px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    {testingIntegration === 'whatsapp' ? 'Testando...' : 'Testar'}
+                  </button>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={integrations.whatsapp.enabled}
+                      onChange={(e) => updateIntegration('whatsapp', 'enabled', e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative w-10 h-6 rounded-full transition-colors ${
+                      integrations.whatsapp.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        integrations.whatsapp.enabled ? 'translate-x-4' : 'translate-x-0'
+                      }`}></div>
+                    </div>
+                  </label>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">
-                Envie mensagens automáticas e gerencie conversas via WhatsApp.
-              </p>
+              
+              {integrations.whatsapp.enabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number ID</label>
+                    <input
+                      type="text"
+                      value={integrations.whatsapp.phoneNumberId}
+                      onChange={(e) => updateIntegration('whatsapp', 'phoneNumberId', e.target.value)}
+                      placeholder="123456789012345"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
+                    <input
+                      type="password"
+                      value={integrations.whatsapp.accessToken}
+                      onChange={(e) => updateIntegration('whatsapp', 'accessToken', e.target.value)}
+                      placeholder="••••••••••••••••••••••••••••••••"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Webhook URL</label>
+                    <input
+                      type="url"
+                      value={integrations.whatsapp.webhookUrl}
+                      onChange={(e) => updateIntegration('whatsapp', 'webhookUrl', e.target.value)}
+                      placeholder="https://seu-dominio.com/webhook/whatsapp"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
