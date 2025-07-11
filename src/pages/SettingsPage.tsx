@@ -1014,12 +1014,12 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-600">Configurações do Sistema</h1>
-          <p className="text-gray-600 mt-1">Personalize e configure seu CRM</p>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Configurações do Sistema</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">Personalize e configure seu CRM</p>
         </div>
         <div className="flex items-center space-x-3">
           {saveStatus !== 'idle' && (
@@ -1037,38 +1037,51 @@ const SettingsPage: React.FC = () => {
           <button
             onClick={handleSaveSettings}
             disabled={saveStatus === 'saving'}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50"
+            className="flex items-center px-3 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base ml-2 sm:ml-0"
           >
             {saveStatus === 'saving' ? (
-              <Loader className="animate-spin mr-2" size={16} />
+              <>
+                <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-1 sm:mr-2"></div>
+                <span className="hidden sm:inline">Salvando...</span>
+                <span className="sm:hidden">...</span>
+              </>
             ) : (
-              <Save className="mr-2" size={16} />
+              <>
+                <Save size={14} className="mr-1 sm:mr-2 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Salvar Alterações</span>
+                <span className="sm:hidden">Salvar</span>
+              </>
             )}
-            {saveStatus === 'saving' ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeTab === tab.id
-                ? `${tab.color} text-white shadow-md`
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <tab.icon size={16} className="mr-2" />
-            {tab.label}
-          </button>
-        ))}
+      <div className="border-b border-gray-200 overflow-x-auto">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8 min-w-max px-2 sm:px-0">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.id
+                  ? `border-blue-500 text-blue-600`
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              style={{
+                borderBottomColor: activeTab === tab.id ? tab.color : 'transparent',
+                color: activeTab === tab.id ? tab.color : undefined
+              }}
+            >
+              <tab.icon size={14} className="mr-1 sm:mr-2 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="whitespace-nowrap text-xs sm:text-sm">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="mt-4 sm:mt-6">
         {renderTabContent()}
       </div>
 
