@@ -15,13 +15,37 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.8';
+export const CURRENT_VERSION = '1.3.9';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-07';
-export const BUILD_NUMBER = 23;
+export const BUILD_DATE = '2025-02-08';
+export const BUILD_NUMBER = 24;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.9': {
+    version: '1.3.9',
+    release: 'Stable',
+    buildDate: '2025-02-08',
+    buildNumber: 24,
+    features: [
+      'Correção definitiva dos temas predefinidos na aba Aparência',
+      'Sistema de integrações 100% funcional implementado',
+      'Integração LDAP/Active Directory com teste de conexão',
+      'Integração Google Workspace com OAuth2',
+      'Integração Microsoft 365 com autenticação',
+      'Integração WhatsApp Business API funcional',
+      'Interface melhorada para configuração de integrações',
+      'Validação e teste de todas as integrações',
+      'Salvamento automático de configurações de integração'
+    ],
+    bugFixes: [
+      'Correção do salvamento de temas predefinidos',
+      'Aplicação correta de cores dos temas selecionados',
+      'Melhoria na persistência de configurações visuais',
+      'Correção na aplicação de temas em tempo real',
+      'Otimização do sistema de salvamento de configurações'
+    ]
+  },
   '1.3.8': {
     version: '1.3.8',
     release: 'Stable',
