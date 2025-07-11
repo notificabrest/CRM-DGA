@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Client, Branch, User, Deal, PipelineStatus, Phone, PhoneType, UserRole, CalendarEvent } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface DataContextType {
   clients: Client[];
@@ -384,6 +385,8 @@ interface DataProviderProps {
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   // Note: We'll use a ref to avoid circular dependency issues
   const emailContextRef = React.useRef<any>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
   
   // Get email context after component mounts
   React.useEffect(() => {
@@ -393,6 +396,28 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     } catch (error) {
       // Email context not available yet
     }
+  }, []);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('🌐 Conectado - sincronizando dados...');
+      setIsOnline(true);
+      syncFromSupabase();
+    };
+    
+    const handleOffline = () => {
+      console.log('📱 Offline - usando dados locais');
+      setIsOnline(false);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const [data, setData] = useState(() => {
@@ -446,9 +471,137 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     return generateMockData();
   });
 
+  // Sync data to Supabase
+  const syncToSupabase = async (newData: any) => {
+    if (!supabase || !isOnline) {
+      console.log('📱 Salvando apenas localmente (Supabase não disponível ou offline)');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('👤 Usuário não autenticado - salvando apenas localmente');
+        return;
+      }
+
+      console.log('☁️ Sincronizando dados para Supabase...');
+      
+      // Save to user_data table (you'll need to create this table)
+      const { error } = await supabase
+        .from('user_data')
+        .upsert({
+          user_id: user.id,
+          data: newData,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('❌ Erro ao sincronizar:', error);
+      } else {
+        console.log('✅ Dados sincronizados com sucesso!');
+        setLastSync(new Date());
+      }
+    } catch (error) {
+      console.error('❌ Erro na sincronização:', error);
+    }
+  };
+
+  // Sync data from Supabase
+  const syncFromSupabase = async () => {
+    if (!supabase || !isOnline) {
+      console.log('📱 Carregando dados locais');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('👤 Usuário não autenticado - usando dados locais');
+        return;
+      }
+
+      console.log('☁️ Carregando dados do Supabase...');
+      
+      const { data: userData, error } = await supabase
+        .from('user_data')
+        .select('data, updated_at')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('❌ Erro ao carregar dados:', error);
+        return;
+      }
+
+      if (userData?.data) {
+        console.log('✅ Dados carregados do Supabase!');
+        
+        // Parse dates properly
+        const parsedData = {
+          ...userData.data,
+          clients: (userData.data.clients || []).map((client: any) => ({
+            ...client,
+            createdAt: new Date(client.createdAt),
+            updatedAt: new Date(client.updatedAt),
+            observations: (client.observations || []).map((obs: any) => ({
+              ...obs,
+              createdAt: new Date(obs.createdAt),
+            })),
+          })),
+          deals: (userData.data.deals || []).map((deal: any) => ({
+            ...deal,
+            createdAt: new Date(deal.createdAt),
+            updatedAt: new Date(deal.updatedAt),
+            history: (deal.history || []).map((hist: any) => ({
+              ...hist,
+              changedAt: new Date(hist.changedAt),
+            })),
+          })),
+          branches: (userData.data.branches || []).map((branch: any) => ({
+            ...branch,
+            createdAt: new Date(branch.createdAt),
+            updatedAt: new Date(branch.updatedAt),
+          })),
+          users: (userData.data.users || []).map((user: any) => ({
+            ...user,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          })),
+          events: (userData.data.events || []).map((event: any) => ({
+            ...event,
+            createdAt: new Date(event.createdAt),
+            updatedAt: new Date(event.updatedAt),
+            startDate: new Date(event.startDate),
+            endDate: new Date(event.endDate),
+          })),
+          pipelineStatuses: userData.data.pipelineStatuses || []
+        };
+        
+        setData(parsedData);
+        setLastSync(new Date(userData.updated_at));
+        
+        // Also save locally as backup
+        localStorage.setItem('crm-data', JSON.stringify(parsedData));
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados do Supabase:', error);
+    }
+  };
+
+  // Load data from Supabase on mount
+  useEffect(() => {
+    if (supabase && isOnline) {
+      syncFromSupabase();
+    }
+  }, [isOnline]);
+
   useEffect(() => {
     try {
       localStorage.setItem('crm-data', JSON.stringify(data));
+      
+      // Sync to Supabase
+      syncToSupabase(data);
       
       // Broadcast data change to other tabs/windows
       const event = new CustomEvent('crm-data-update', { detail: data });

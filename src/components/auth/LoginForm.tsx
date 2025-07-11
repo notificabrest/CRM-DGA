@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const LoginForm: React.FC = () => {
   const { login, resetPassword, error, loading } = useAuth();
@@ -89,17 +90,13 @@ const LoginForm: React.FC = () => {
         </form>
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Informação</h3>
+          <h3 className="text-sm font-medium text-blue-800 mb-2">🔄 Reset de Senha</h3>
           <p className="text-xs text-blue-700">
-            A senha será resetada para o padrão baseado no seu perfil:
+            {supabase ? 
+              'Um email será enviado com instruções para redefinir sua senha.' :
+              'A senha será resetada para o padrão baseado no seu perfil de usuário.'
+            }
           </p>
-          <ul className="text-xs text-blue-700 mt-2 space-y-1">
-            <li>• <strong>Admin:</strong> admin123</li>
-            <li>• <strong>Director:</strong> director123</li>
-            <li>• <strong>Manager:</strong> manager123</li>
-            <li>• <strong>Salesperson:</strong> salesperson123</li>
-            <li>• <strong>Assistant:</strong> assistant123</li>
-          </ul>
         </div>
       </div>
     );
@@ -110,6 +107,22 @@ const LoginForm: React.FC = () => {
       <div className="text-center">
         <h1 className="text-4xl font-extrabold text-orange-500">CRM-DGA</h1>
         <p className="mt-2 text-gray-600">Customer Relationship Management</p>
+        {supabase && (
+          <div className="mt-2 p-2 bg-green-50 rounded text-xs">
+            <p className="text-green-800 font-medium">☁️ Modo Nuvem Ativo</p>
+            <p className="text-green-700 mt-1">
+              Dados sincronizados entre todos os dispositivos
+            </p>
+          </div>
+        )}
+        {!supabase && (
+          <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
+            <p className="text-yellow-800 font-medium">📱 Modo Local</p>
+            <p className="text-yellow-700 mt-1">
+              Configure Supabase para sincronizar entre dispositivos
+            </p>
+          </div>
+        )}
       </div>
       
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -199,21 +212,19 @@ const LoginForm: React.FC = () => {
         </div>
       </form>
 
-      {/* Credentials Helper */}
+      {/* System Status */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="text-sm font-medium text-gray-800 mb-2">🔑 Credenciais de Teste</h3>
-        <div className="space-y-2 text-xs text-gray-600">
+        <h3 className="text-sm font-medium text-gray-800 mb-2">ℹ️ Status do Sistema</h3>
+        <div className="space-y-1 text-xs text-gray-600">
           <div className="flex justify-between">
-            <span>Admin:</span>
-            <span className="font-mono">admin@example.com / admin123</span>
+            <span>Modo:</span>
+            <span className={`font-medium ${supabase ? 'text-green-600' : 'text-yellow-600'}`}>
+              {supabase ? 'Nuvem (Sincronizado)' : 'Local'}
+            </span>
           </div>
           <div className="flex justify-between">
-            <span>Vendedor:</span>
-            <span className="font-mono">jonny@brestelecom.com.br / salesperson123</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Suporte:</span>
-            <span className="font-mono">suporte@brestelecom.com.br / assistant123</span>
+            <span>Versão:</span>
+            <span className="font-mono">v1.4.3</span>
           </div>
         </div>
       </div>
