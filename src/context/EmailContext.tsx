@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { EmailService, EmailConfig, PipelineNotification, SMTPTestResult, defaultEmailConfig } from '../utils/emailService';
+import dataSyncService from '../utils/dataSync';
 
 interface EmailContextType {
   emailConfig: EmailConfig;
@@ -32,6 +33,23 @@ export const EmailProvider: React.FC<EmailProviderProps> = ({ children }) => {
   const [emailService, setEmailService] = useState<EmailService>(new EmailService(emailConfig));
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
+  // Load email config from cloud on mount
+  useEffect(() => {
+    const loadEmailConfigFromCloud = async () => {
+      try {
+        const cloudData = await dataSyncService.syncFromCloud();
+        if (cloudData?.emailConfig) {
+          console.log('📧 Configuração de email carregada da nuvem');
+          setEmailConfig({ ...defaultEmailConfig, ...cloudData.emailConfig });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar config de email da nuvem:', error);
+      }
+    };
+
+    loadEmailConfigFromCloud();
+  }, []);
+
   // Make email context available globally for DataContext
   useEffect(() => {
     (window as any).__emailContext = {
@@ -49,6 +67,9 @@ export const EmailProvider: React.FC<EmailProviderProps> = ({ children }) => {
     try {
       localStorage.setItem('crm-email-config', JSON.stringify(emailConfig));
       setEmailService(new EmailService(emailConfig));
+      
+      // Sync email config to cloud
+      dataSyncService.syncEmailConfig(emailConfig);
     } catch (error) {
       console.error('Error saving email config:', error);
     }

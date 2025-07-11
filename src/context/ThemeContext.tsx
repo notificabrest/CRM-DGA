@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Theme } from '../types';
+import dataSyncService from '../utils/dataSync';
 
 interface ThemeContextType {
   currentTheme: Theme;
@@ -108,6 +109,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [availableThemes] = useState<Theme[]>(DEFAULT_THEMES);
   const [appName, setAppName] = useState('CRM-DGA');
 
+  // Load theme from cloud on mount
+  useEffect(() => {
+    const loadThemeFromCloud = async () => {
+      try {
+        const cloudData = await dataSyncService.syncFromCloud();
+        if (cloudData?.themes) {
+          console.log('🎨 Tema carregado da nuvem:', cloudData.themes);
+          setCurrentTheme({
+            ...DEFAULT_THEMES[0],
+            ...cloudData.themes
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar tema da nuvem:', error);
+      }
+    };
+
+    loadThemeFromCloud();
+  }, []);
+
   useEffect(() => {
     console.log('🎨 Aplicando tema:', currentTheme);
     document.documentElement.style.setProperty('--color-primary', currentTheme.primaryColor);
@@ -122,6 +143,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     localStorage.setItem('crm-theme', JSON.stringify(currentTheme));
     document.title = `${currentTheme.headerName || appName} | Customer Relationship Management`;
     
+    // Sync theme to cloud
+    dataSyncService.syncTheme(currentTheme);
+    
     // Update favicon if exists
     if (currentTheme.favicon) {
       const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
@@ -134,35 +158,41 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const setTheme = (theme: Theme): void => {
     console.log('🔄 Mudando tema para:', theme.name);
     setCurrentTheme(theme);
+    // Sync will happen in useEffect
   };
 
   const customizeTheme = (themeUpdates: Partial<Theme>): void => {
-    setCurrentTheme(prev => ({
+    const newTheme = {
       ...prev,
       ...themeUpdates,
       name: 'Custom',
-    }));
+    };
+    setCurrentTheme(newTheme);
+    // Sync will happen in useEffect
   };
 
   const setHeaderName = (name: string): void => {
-    setCurrentTheme(prev => ({
+    const newTheme = {
       ...prev,
       headerName: name,
-    }));
+    };
+    setCurrentTheme(newTheme);
   };
 
   const setSidebarName = (name: string): void => {
-    setCurrentTheme(prev => ({
+    const newTheme = {
       ...prev,
       sidebarName: name,
-    }));
+    };
+    setCurrentTheme(newTheme);
   };
 
   const setLogo = (logo: string): void => {
-    setCurrentTheme(prev => ({
+    const newTheme = {
       ...prev,
       logo,
-    }));
+    };
+    setCurrentTheme(newTheme);
   };
 
   const value = {

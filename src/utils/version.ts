@@ -15,13 +15,37 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.9';
+export const CURRENT_VERSION = '1.4.0';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-08';
-export const BUILD_NUMBER = 24;
+export const BUILD_DATE = '2025-02-09';
+export const BUILD_NUMBER = 25;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.0': {
+    version: '1.4.0',
+    release: 'Stable',
+    buildDate: '2025-02-09',
+    buildNumber: 25,
+    features: [
+      'Sincronização de dados em tempo real entre dispositivos',
+      'Integração completa com Supabase para persistência de dados',
+      'Sistema de backup automático para localStorage',
+      'Sincronização de configurações de tema entre dispositivos',
+      'Sincronização de configurações de email entre dispositivos',
+      'Sincronização de configurações de integrações entre dispositivos',
+      'Detecção automática de conexão online/offline',
+      'Fallback para localStorage quando offline',
+      'Interface de status de sincronização para o usuário'
+    ],
+    bugFixes: [
+      'Correção da inconsistência de dados entre dispositivos',
+      'Resolução de problemas de localStorage isolado',
+      'Melhoria na persistência de configurações',
+      'Otimização da performance de sincronização',
+      'Correção de conflitos de dados entre sessões'
+    ]
+  },
   '1.3.9': {
     version: '1.3.9',
     release: 'Stable',

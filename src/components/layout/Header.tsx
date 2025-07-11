@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
+import SyncStatusIndicator from '../common/SyncStatus';
 
 interface HeaderProps {
   toggleMobileSidebar: () => void;
@@ -100,6 +101,8 @@ const Header: React.FC<HeaderProps> = ({ toggleMobileSidebar }) => {
         </div>
         
         <div className="flex items-center ml-2 sm:ml-4">
+          <SyncStatusIndicator />
+          
           <button className="p-2 mr-2 sm:mr-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md relative">
             <Bell size={18} className="sm:w-5 sm:h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ backgroundColor: currentTheme.primaryColor }}></span>

@@ -11,6 +11,7 @@ import {
   defaultWhatsAppConfig,
   IntegrationTestResult
 } from '../utils/integrationServices';
+import dataSyncService from '../utils/dataSync';
 
 interface IntegrationContextType {
   ldapConfig: LDAPConfig;
@@ -71,6 +72,35 @@ export const IntegrationProvider: React.FC<IntegrationProviderProps> = ({ childr
     }
   });
 
+  // Load integration configs from cloud on mount
+  useEffect(() => {
+    const loadIntegrationsFromCloud = async () => {
+      try {
+        const cloudData = await dataSyncService.syncFromCloud();
+        if (cloudData?.integrationConfigs) {
+          console.log('🔗 Configurações de integração carregadas da nuvem');
+          
+          if (cloudData.integrationConfigs.ldap) {
+            setLDAPConfig({ ...defaultLDAPConfig, ...cloudData.integrationConfigs.ldap });
+          }
+          if (cloudData.integrationConfigs.google) {
+            setGoogleConfig({ ...defaultGoogleConfig, ...cloudData.integrationConfigs.google });
+          }
+          if (cloudData.integrationConfigs.microsoft) {
+            setMicrosoftConfig({ ...defaultMicrosoftConfig, ...cloudData.integrationConfigs.microsoft });
+          }
+          if (cloudData.integrationConfigs.whatsapp) {
+            setWhatsAppConfig({ ...defaultWhatsAppConfig, ...cloudData.integrationConfigs.whatsapp });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar integrações da nuvem:', error);
+      }
+    };
+
+    loadIntegrationsFromCloud();
+  }, []);
+
   // Initialize integration services when configs change
   useEffect(() => {
     const manager = IntegrationManager.getInstance();
@@ -96,24 +126,56 @@ export const IntegrationProvider: React.FC<IntegrationProviderProps> = ({ childr
     const newConfig = { ...ldapConfig, ...updates };
     setLDAPConfig(newConfig);
     localStorage.setItem('crm-ldap-config', JSON.stringify(newConfig));
+    
+    // Sync to cloud
+    dataSyncService.syncIntegrationConfigs({
+      ldap: newConfig,
+      google: googleConfig,
+      microsoft: microsoftConfig,
+      whatsapp: whatsappConfig
+    });
   };
 
   const updateGoogleConfig = (updates: Partial<GoogleWorkspaceConfig>) => {
     const newConfig = { ...googleConfig, ...updates };
     setGoogleConfig(newConfig);
     localStorage.setItem('crm-google-config', JSON.stringify(newConfig));
+    
+    // Sync to cloud
+    dataSyncService.syncIntegrationConfigs({
+      ldap: ldapConfig,
+      google: newConfig,
+      microsoft: microsoftConfig,
+      whatsapp: whatsappConfig
+    });
   };
 
   const updateMicrosoftConfig = (updates: Partial<Microsoft365Config>) => {
     const newConfig = { ...microsoftConfig, ...updates };
     setMicrosoftConfig(newConfig);
     localStorage.setItem('crm-microsoft-config', JSON.stringify(newConfig));
+    
+    // Sync to cloud
+    dataSyncService.syncIntegrationConfigs({
+      ldap: ldapConfig,
+      google: googleConfig,
+      microsoft: newConfig,
+      whatsapp: whatsappConfig
+    });
   };
 
   const updateWhatsAppConfig = (updates: Partial<WhatsAppConfig>) => {
     const newConfig = { ...whatsappConfig, ...updates };
     setWhatsAppConfig(newConfig);
     localStorage.setItem('crm-whatsapp-config', JSON.stringify(newConfig));
+    
+    // Sync to cloud
+    dataSyncService.syncIntegrationConfigs({
+      ldap: ldapConfig,
+      google: googleConfig,
+      microsoft: microsoftConfig,
+      whatsapp: newConfig
+    });
   };
 
   const testLDAPConnection = async (): Promise<IntegrationTestResult> => {
