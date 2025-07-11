@@ -396,12 +396,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🔄 Iniciando reset de senha para:', email);
       
+      // Try Supabase password reset first
+      if (supabase) {
+        console.log('☁️ Tentando reset via Supabase...');
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`
+        });
+        
+        if (!error) {
+          console.log('✅ Email de reset enviado via Supabase');
+          alert('Email de reset de senha enviado! Verifique sua caixa de entrada.');
+          return;
+        } else {
+          console.log('⚠️ Erro Supabase, tentando método local:', error.message);
+        }
+      }
+      
+      // Fallback to local users
+      console.log('📱 Tentando reset local...');
       const users = getUsers();
       const foundUser = users.find((u: User) => u.email.toLowerCase() === email.toLowerCase());
       
       if (!foundUser) {
+        console.log('❌ Email não encontrado:', email);
         throw new Error('Email não encontrado no sistema');
       }
 
@@ -410,14 +429,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedUser = { ...foundUser, password: defaultPassword };
       updateUserInStorage(updatedUser);
 
-      // Send reset email (simulate)
-      console.log(`📧 Enviando email de reset de senha para: ${email}`);
+      console.log('✅ Senha resetada localmente');
       console.log(`🔑 Nova senha: ${defaultPassword}`);
       
-      // In a real application, you would send an email here
-      alert(`Senha resetada com sucesso! Nova senha: ${defaultPassword}\n\nEm um sistema real, esta informação seria enviada por email.`);
+      alert(`Senha resetada com sucesso!\n\nNova senha: ${defaultPassword}\n\nUse esta senha para fazer login.`);
       
     } catch (err) {
+      console.error('❌ Erro no reset de senha:', err);
       setError((err as Error).message);
       throw err;
     } finally {

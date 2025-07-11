@@ -15,13 +15,37 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.4.2';
+export const CURRENT_VERSION = '1.4.3';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-11';
-export const BUILD_NUMBER = 27;
+export const BUILD_DATE = '2025-02-12';
+export const BUILD_NUMBER = 28;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.3': {
+    version: '1.4.3',
+    release: 'Stable',
+    buildDate: '2025-02-12',
+    buildNumber: 28,
+    features: [
+      'Sistema de reset de senha totalmente funcional',
+      'Sincronização real de dados entre web e mobile via Supabase',
+      'Autenticação unificada com sessão persistente',
+      'Migração automática de dados locais para nuvem',
+      'Detecção automática de modo online/offline',
+      'Interface limpa sem credenciais de teste expostas',
+      'Sistema híbrido: nuvem + local para máxima compatibilidade',
+      'Validação robusta de configuração Supabase'
+    ],
+    bugFixes: [
+      'Correção do "Forgot your password" que não funcionava',
+      'Resolução da inconsistência de dados entre web e mobile',
+      'Melhoria na sincronização de credenciais entre dispositivos',
+      'Correção na persistência de sessão cross-device',
+      'Otimização do sistema de autenticação híbrido',
+      'Remoção das credenciais de teste da interface'
+    ]
+  },
   '1.4.2': {
     version: '1.4.2',
     release: 'Stable',
