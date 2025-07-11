@@ -367,59 +367,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('crm-user');
   };
-    const savedUser = localStorage.getItem('crm-user');
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        // Verify user still exists in the system
-        const users = getUsers();
-        const currentUser = users.find((u: User) => u.id === parsedUser.id);
-        if (currentUser) {
-          setUser(currentUser);
-        } else {
-          localStorage.removeItem('crm-user');
-        }
-      } catch (err) {
-        console.error('Failed to parse saved user', err);
-        localStorage.removeItem('crm-user');
-      }
-    }
-    setLoading(false);
-  }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const users = getUsers();
-      console.log('🔍 Tentando login para:', email);
-      console.log('👥 Usuários disponíveis:', users.map((u: User) => ({ email: u.email, password: u.password })));
-      
-      const foundUser = users.find((u: User) => 
-        u.email.toLowerCase() === email.toLowerCase() && 
-        u.password === password
-      );
-      
-      if (!foundUser) {
-        console.log('❌ Usuário não encontrado ou senha incorreta');
-        throw new Error('Email ou senha inválidos');
-      }
-      
-      console.log('✅ Login bem-sucedido para:', foundUser.name);
-      
-      // Remove password from user object before storing
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword as User);
-      localStorage.setItem('crm-user', JSON.stringify(userWithoutPassword));
-    } catch (err) {
-      setError((err as Error).message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+  const hasPermission = (requiredRoles: UserRole[]): boolean => {
+    if (!user) return false;
+    return requiredRoles.includes(user.role);
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
@@ -472,16 +423,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const logout = (): void => {
-    setUser(null);
-    localStorage.removeItem('crm-user');
-  };
-
-  const hasPermission = (requiredRoles: UserRole[]): boolean => {
-    if (!user) return false;
-    return requiredRoles.includes(user.role);
   };
 
   const value = {
