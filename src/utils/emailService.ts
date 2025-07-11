@@ -258,7 +258,7 @@ export class EmailService {
           style: 'currency',
           currency: 'BRL'
         }).format(notification.dealValue)
-      : 'Não informado';
+      : 'Valor não informado';
 
     const formattedDate = notification.timestamp.toLocaleString('pt-BR');
 

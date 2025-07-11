@@ -22,6 +22,8 @@ const SettingsPage: React.FC = () => {
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<any>(null);
+  const [showStatusForm, setShowStatusForm] = useState(false);
   const [customColors, setCustomColors] = useState({
     primaryColor: currentTheme.primaryColor,
     backgroundColor: currentTheme.backgroundColor,
@@ -203,6 +205,47 @@ const SettingsPage: React.FC = () => {
       setNewStatusName('');
       setNewStatusColor('#3B82F6');
     }
+  };
+
+  const handleEditStatus = (status: any) => {
+    setEditingStatus(status);
+    setNewStatusName(status.name);
+    setNewStatusColor(status.color);
+    setShowStatusForm(true);
+  };
+
+  const handleUpdateStatus = () => {
+    if (editingStatus && newStatusName.trim()) {
+      updatePipelineStatus(editingStatus.id, {
+        name: newStatusName.trim(),
+        color: newStatusColor
+      });
+      setEditingStatus(null);
+      setShowStatusForm(false);
+      setNewStatusName('');
+      setNewStatusColor('#3B82F6');
+    }
+  };
+
+  const handleDeleteStatus = (statusId: string) => {
+    // Check if status is being used by any deals
+    const statusInUse = deals.some(deal => deal.statusId === statusId);
+    
+    if (statusInUse) {
+      alert('Este status não pode ser excluído pois está sendo usado por negócios ativos.');
+      return;
+    }
+    
+    if (window.confirm('Tem certeza que deseja excluir este status?')) {
+      deletePipelineStatus(statusId);
+    }
+  };
+
+  const handleCancelStatusEdit = () => {
+    setEditingStatus(null);
+    setShowStatusForm(false);
+    setNewStatusName('');
+    setNewStatusColor('#3B82F6');
   };
 
   const handleAddUser = () => {
@@ -493,7 +536,9 @@ const SettingsPage: React.FC = () => {
             
             {/* Add New Status */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-              <h4 className="text-base font-semibold text-gray-900 mb-4">Adicionar Status</h4>
+              <h4 className="text-base font-semibold text-gray-900 mb-4">
+                {editingStatus ? 'Editar Status' : 'Adicionar Status'}
+              </h4>
               <div className="flex items-center space-x-4">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -518,12 +563,31 @@ const SettingsPage: React.FC = () => {
                     className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
                   />
                 </div>
-                <button
-                  onClick={handleAddStatus}
-                  className="mt-6 px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200"
-                >
-                  Adicionar
-                </button>
+                <div className="mt-6 flex space-x-2">
+                  {editingStatus ? (
+                    <>
+                      <button
+                        onClick={handleUpdateStatus}
+                        className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+                      >
+                        Atualizar
+                      </button>
+                      <button
+                        onClick={handleCancelStatusEdit}
+                        className="px-6 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-700 transition-all duration-200"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleAddStatus}
+                      className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200"
+                    >
+                      Adicionar
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -544,12 +608,17 @@ const SettingsPage: React.FC = () => {
                       <span className="text-sm text-gray-500">{status.color}</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-md">
+                      <button 
+                        onClick={() => handleEditStatus(status)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        title="Editar status"
+                      >
                         <Settings size={16} />
                       </button>
                       <button 
-                        onClick={() => deletePipelineStatus(status.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                        onClick={() => handleDeleteStatus(status.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="Excluir status"
                       >
                         <X size={16} />
                       </button>

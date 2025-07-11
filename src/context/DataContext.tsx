@@ -713,6 +713,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         fromStatus: oldStatus.name,
         toStatus: newStatus.name,
         userName: user.name,
+        dealValue: deal.value,
         timestamp: new Date()
       }).catch(error => {
         console.error('Failed to send pipeline notification:', error);

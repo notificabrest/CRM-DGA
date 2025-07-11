@@ -15,13 +15,35 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.3.7';
+export const CURRENT_VERSION = '1.3.8';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-06';
-export const BUILD_NUMBER = 22;
+export const BUILD_DATE = '2025-02-07';
+export const BUILD_NUMBER = 23;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.3.8': {
+    version: '1.3.8',
+    release: 'Stable',
+    buildDate: '2025-02-07',
+    buildNumber: 23,
+    features: [
+      'CRUD completo implementado para Status do Pipeline',
+      'Edição inline de status com modal dedicado',
+      'Botões de ação (editar/excluir) para cada status',
+      'Validação de exclusão para status em uso',
+      'Valor da negociação adicionado aos emails de notificação',
+      'Interface melhorada para gerenciamento de pipeline',
+      'Confirmação visual para ações de CRUD'
+    ],
+    bugFixes: [
+      'Correção do email de notificação que mostrava "Valor: Não informado"',
+      'Melhoria na exibição do valor formatado em moeda brasileira',
+      'Correção na validação de exclusão de status',
+      'Otimização da interface de gerenciamento de status',
+      'Melhoria no feedback visual das ações CRUD'
+    ]
+  },
   '1.3.7': {
     version: '1.3.7',
     release: 'Stable',
