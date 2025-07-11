@@ -56,7 +56,16 @@ const LoginForm: React.FC = () => {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 pl-10"
                 placeholder="Digite seu email"
               />
-              <Mail size={20} className="absolute left-3 top-2.5 text-gray-400" />
+              <span className="font-mono">admin@example.com / admin123</span>
+            </div>
+            <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
+              <p className="text-blue-800 font-medium">💡 Sincronização Automática</p>
+              <p className="text-blue-700 mt-1">
+                {supabase ? 
+                  'Dados sincronizados entre todos os dispositivos via Supabase' : 
+                  'Modo local - Configure Supabase para sincronizar entre dispositivos'
+                }
+              </p>
             </div>
           </div>
 

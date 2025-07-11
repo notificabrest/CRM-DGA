@@ -80,6 +80,36 @@ const SyncStatusIndicator: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-gray-900">Status de Sincronização</h3>
+              <div className="flex items-center space-x-2">
+                {supabase && (
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    Supabase
+                  </span>
+                )}
+                <button
+                  onClick={() => setShowDetails(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Autenticação:</span>
+                <div className="flex items-center space-x-1">
+                  {syncStatus.hasSupabase ? (
+                    <Cloud size={14} className="text-green-500" />
+                  ) : (
+                    <CloudOff size={14} className="text-yellow-500" />
+                  )}
+                  <span className={syncStatus.hasSupabase ? 'text-green-600' : 'text-yellow-600'}>
+                    {syncStatus.hasSupabase ? 'Nuvem' : 'Local'}
+                  </span>
+                </div>
+              </div>
+              
               <button
                 onClick={() => setShowDetails(false)}
                 className="text-gray-400 hover:text-gray-600"

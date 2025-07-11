@@ -15,13 +15,36 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.4.0';
+export const CURRENT_VERSION = '1.4.1';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-09';
-export const BUILD_NUMBER = 25;
+export const BUILD_DATE = '2025-02-10';
+export const BUILD_NUMBER = 26;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.1': {
+    version: '1.4.1',
+    release: 'Stable',
+    buildDate: '2025-02-10',
+    buildNumber: 26,
+    features: [
+      'Autenticação real com Supabase implementada',
+      'Sincronização de credenciais entre dispositivos',
+      'Login unificado para web e mobile',
+      'Persistência de sessão na nuvem',
+      'Fallback para localStorage quando Supabase não disponível',
+      'Detecção automática de modo de autenticação',
+      'Migração automática de dados locais para nuvem',
+      'Sistema híbrido: nuvem + local para máxima compatibilidade'
+    ],
+    bugFixes: [
+      'Correção do problema de credenciais diferentes entre dispositivos',
+      'Resolução da falta de sincronização de dados de usuário',
+      'Melhoria na persistência de sessão entre dispositivos',
+      'Correção na validação de credenciais cross-device',
+      'Otimização do sistema de autenticação híbrido'
+    ]
+  },
   '1.4.0': {
     version: '1.4.0',
     release: 'Stable',
