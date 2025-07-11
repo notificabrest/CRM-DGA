@@ -15,13 +15,38 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.4.4';
+export const CURRENT_VERSION = '1.4.5';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-13';
-export const BUILD_NUMBER = 29;
+export const BUILD_DATE = '2025-02-14';
+export const BUILD_NUMBER = 30;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.5': {
+    version: '1.4.5',
+    release: 'Stable',
+    buildDate: '2025-02-14',
+    buildNumber: 30,
+    features: [
+      'Schema completo do banco de dados criado no Supabase',
+      'Todas as tabelas principais implementadas (users, branches, clients, deals, etc.)',
+      'Sistema de tipos customizados (ENUMs) para validação de dados',
+      'Políticas RLS (Row Level Security) configuradas para todas as tabelas',
+      'Índices otimizados para melhor performance das queries',
+      'Triggers automáticos para updated_at em todas as tabelas',
+      'Função automática para criação de usuários via auth.users',
+      'Dados iniciais inseridos (pipeline statuses e filial matriz)',
+      'Foreign keys e constraints para integridade referencial',
+      'Suporte completo a relacionamentos entre tabelas'
+    ],
+    bugFixes: [
+      'Estrutura de banco de dados totalmente alinhada com o frontend',
+      'Tipos de dados consistentes entre TypeScript e PostgreSQL',
+      'Validações de dados implementadas via constraints',
+      'Segurança aprimorada com RLS em todas as operações',
+      'Performance otimizada com índices estratégicos'
+    ]
+  },
   '1.4.4': {
     version: '1.4.4',
     release: 'Stable',
