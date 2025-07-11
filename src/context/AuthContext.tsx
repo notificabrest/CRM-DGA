@@ -26,18 +26,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const [useSupabaseAuth, setUseSupabaseAuth] = useState(!!supabase);
 
+  // Define default admin user
+  const getDefaultAdminUser = (): User & { password: string } => ({
+    id: 'admin-default-id',
+    name: 'Admin User',
+    email: 'admin@brestelecom.com.br',
+    phone: '+55 11 99999-9999',
+    role: 'ADMIN' as UserRole,
+    status: 'ACTIVE',
+    branchIds: [],
+    avatar: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    password: 'admin123'
+  });
+
   // Get users from localStorage (same source as DataContext)
   const getUsers = () => {
     try {
       const savedData = localStorage.getItem('crm-data');
       if (savedData) {
         const parsedData = JSON.parse(savedData);
-        return parsedData.users || [];
+        const users = parsedData.users || [];
+        
+        // Ensure default admin user exists
+        const defaultAdmin = getDefaultAdminUser();
+        const adminExists = users.some((u: User) => u.email === defaultAdmin.email);
+        
+        if (!adminExists) {
+          users.push(defaultAdmin);
+          // Save back to localStorage
+          parsedData.users = users;
+          localStorage.setItem('crm-data', JSON.stringify(parsedData));
+        }
+        
+        return users;
       }
+      
+      // If no saved data, create with default admin
+      const defaultUsers = [getDefaultAdminUser()];
+      const initialData = { users: defaultUsers };
+      localStorage.setItem('crm-data', JSON.stringify(initialData));
+      return defaultUsers;
     } catch (error) {
       console.error('Error loading users:', error);
+      // On error, return at least the default admin user
+      return [getDefaultAdminUser()];
     }
-    return [];
   };
 
   // Update user in localStorage
