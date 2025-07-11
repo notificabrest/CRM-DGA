@@ -57,15 +57,11 @@ const LoginForm: React.FC = () => {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 pl-10"
                 placeholder="Digite seu email"
               />
-              <span className="font-mono">admin@example.com / admin123</span>
             </div>
             <div className="mt-2 p-2 bg-blue-50 rounded text-xs">
               <p className="text-blue-800 font-medium">💡 Sincronização Automática</p>
               <p className="text-blue-700 mt-1">
-                {supabase ? 
-                  'Dados sincronizados entre todos os dispositivos via Supabase' : 
-                  'Modo local - Configure Supabase para sincronizar entre dispositivos'
-                }
+                Sistema 100% integrado ao Supabase - dados em tempo real
               </p>
             </div>
           </div>
@@ -111,15 +107,15 @@ const LoginForm: React.FC = () => {
           <div className="mt-2 p-2 bg-green-50 rounded text-xs">
             <p className="text-green-800 font-medium">☁️ Modo Nuvem Ativo</p>
             <p className="text-green-700 mt-1">
-              Dados sincronizados entre todos os dispositivos
+              Sistema 100% integrado ao Supabase
             </p>
           </div>
         )}
         {!supabase && (
           <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
-            <p className="text-yellow-800 font-medium">📱 Modo Local</p>
+            <p className="text-yellow-800 font-medium">❌ Sistema Não Configurado</p>
             <p className="text-yellow-700 mt-1">
-              Configure Supabase para sincronizar entre dispositivos
+              Supabase não configurado - entre em contato com o administrador
             </p>
           </div>
         )}
@@ -218,13 +214,13 @@ const LoginForm: React.FC = () => {
         <div className="space-y-1 text-xs text-gray-600">
           <div className="flex justify-between">
             <span>Modo:</span>
-            <span className={`font-medium ${supabase ? 'text-green-600' : 'text-yellow-600'}`}>
-              {supabase ? 'Nuvem (Sincronizado)' : 'Local'}
+            <span className={`font-medium ${supabase ? 'text-green-600' : 'text-red-600'}`}>
+              {supabase ? 'Supabase Integrado' : 'Não Configurado'}
             </span>
           </div>
           <div className="flex justify-between">
             <span>Versão:</span>
-            <span className="font-mono">v1.4.3</span>
+            <span className="font-mono">v1.4.4</span>
           </div>
         </div>
       </div>

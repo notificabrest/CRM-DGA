@@ -15,13 +15,37 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.4.3';
+export const CURRENT_VERSION = '1.4.4';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-12';
-export const BUILD_NUMBER = 28;
+export const BUILD_DATE = '2025-02-13';
+export const BUILD_NUMBER = 29;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.4': {
+    version: '1.4.4',
+    release: 'Stable',
+    buildDate: '2025-02-13',
+    buildNumber: 29,
+    features: [
+      'Integração 100% com Supabase - removido fallback localStorage',
+      'Autenticação exclusivamente via Supabase Auth',
+      'Sincronização de dados em tempo real com PostgreSQL',
+      'Migração automática de dados locais para Supabase na primeira execução',
+      'Sistema de usuários totalmente baseado em Supabase',
+      'Políticas RLS (Row Level Security) implementadas',
+      'Backup automático e recuperação de dados via nuvem',
+      'Performance otimizada com queries diretas ao PostgreSQL'
+    ],
+    bugFixes: [
+      'Removido fallback localStorage que causava inconsistências',
+      'Correção na autenticação para usar apenas Supabase',
+      'Melhoria na sincronização de dados entre dispositivos',
+      'Otimização das queries para melhor performance',
+      'Correção na persistência de sessão cross-device',
+      'Resolução de conflitos entre dados locais e nuvem'
+    ]
+  },
   '1.4.3': {
     version: '1.4.3',
     release: 'Stable',
