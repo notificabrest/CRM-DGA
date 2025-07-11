@@ -15,13 +15,35 @@ export interface ReleaseNotes {
 }
 
 // Current version configuration
-export const CURRENT_VERSION = '1.4.1';
+export const CURRENT_VERSION = '1.4.2';
 export const CURRENT_RELEASE = 'Stable';
-export const BUILD_DATE = '2025-02-10';
-export const BUILD_NUMBER = 26;
+export const BUILD_DATE = '2025-02-11';
+export const BUILD_NUMBER = 27;
 
 // Release history and notes
 export const RELEASE_NOTES: ReleaseNotes = {
+  '1.4.2': {
+    version: '1.4.2',
+    release: 'Stable',
+    buildDate: '2025-02-11',
+    buildNumber: 27,
+    features: [
+      'Busca por telefone via URL aprimorada com negócios associados',
+      'Cards de negócios exibidos junto com dados do cliente',
+      'Histórico completo de buscas realizadas por URL',
+      'Interface melhorada para visualização de resultados',
+      'Navegação direta para pipeline a partir dos negócios',
+      'Persistência do histórico de buscas no localStorage',
+      'Filtros avançados para histórico de buscas',
+      'Design responsivo para cards de negócios'
+    ],
+    bugFixes: [
+      'Melhoria na exibição de resultados de busca por telefone',
+      'Correção na navegação entre páginas de busca',
+      'Otimização da performance na busca de negócios',
+      'Melhoria na responsividade dos cards de resultado'
+    ]
+  },
   '1.4.1': {
     version: '1.4.1',
     release: 'Stable',

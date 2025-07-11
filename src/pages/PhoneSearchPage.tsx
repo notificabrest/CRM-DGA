@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Phone, UserPlus, Search, ArrowRight, Users, CreditCard, 
-  Building2, Mail, Tag, Filter, X, Sparkles, Target,
-  TrendingUp, Clock, Star
+  Phone, UserPlus, Search, ArrowRight, Users, CreditCard, Building2, Mail, Tag, Filter, X, Sparkles, Target,
+  TrendingUp, Clock, Star, History, BarChart3, Calendar, DollarSign, Eye, Trash2
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import PhoneSearchInput from '../components/common/PhoneSearchInput';
 import ClientCard from '../components/clients/ClientCard';
 import ClientForm from '../components/clients/ClientForm';
-import { PhoneType } from '../types';
+import { PhoneType, Deal } from '../types';
+import searchHistoryManager, { SearchHistoryEntry } from '../utils/searchHistory';
 
 const PhoneSearchPage: React.FC = () => {
   const { phoneNumber } = useParams<{ phoneNumber?: string }>();
@@ -20,19 +20,27 @@ const PhoneSearchPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any>({
     clients: [],
     deals: [],
-    phones: []
+    phones: [],
+    clientDeals: []
   });
   const [showForm, setShowForm] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [searchInitiated, setSearchInitiated] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [searchType, setSearchType] = useState<'all' | 'phone' | 'name' | 'email' | 'company'>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+
+  // Load search history on component mount
+  useEffect(() => {
+    setSearchHistory(searchHistoryManager.getHistory());
+  }, []);
 
   // Perform comprehensive search
   const performSearch = (term: string) => {
     if (!term.trim()) {
-      setSearchResults({ clients: [], deals: [], phones: [] });
+      setSearchResults({ clients: [], deals: [], phones: [], clientDeals: [] });
       setSearchInitiated(false);
       return;
     }
@@ -72,10 +80,29 @@ const PhoneSearchPage: React.FC = () => {
       client.phones.some(phone => phone.number.replace(/\D/g, '').includes(phoneDigits))
     );
 
+    // Get deals for found clients
+    const clientDeals = matchingClients.length > 0 
+      ? deals.filter(deal => matchingClients.some(client => client.id === deal.clientId))
+      : [];
+
+    // Add to search history
+    if (searchType === 'phone' || searchType === 'all') {
+      const foundClient = matchingClients[0];
+      searchHistoryManager.addSearch({
+        phoneNumber: phoneDigits,
+        clientFound: !!foundClient,
+        clientName: foundClient?.name,
+        dealsCount: clientDeals.length,
+        url: window.location.href
+      });
+      setSearchHistory(searchHistoryManager.getHistory());
+    }
+
     setSearchResults({
       clients: matchingClients,
       deals: matchingDeals,
-      phones: phoneMatches
+      phones: phoneMatches,
+      clientDeals
     });
 
     setTimeout(() => setIsLoading(false), 500);
@@ -133,7 +160,7 @@ const PhoneSearchPage: React.FC = () => {
 
   const clearSearch = () => {
     setSearchTerm('');
-    setSearchResults({ clients: [], deals: [], phones: [] });
+    setSearchResults({ clients: [], deals: [], phones: [], clientDeals: [] });
     setSearchInitiated(false);
     navigate('/phone-search');
   };
@@ -146,6 +173,26 @@ const PhoneSearchPage: React.FC = () => {
   const getStatusName = (statusId: string) => {
     const status = pipelineStatuses.find(s => s.id === statusId);
     return status?.name || 'Unknown';
+  };
+
+  const handleViewDeal = (deal: Deal) => {
+    navigate('/pipeline');
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    searchHistoryManager.removeSearch(id);
+    setSearchHistory(searchHistoryManager.getHistory());
+  };
+
+  const handleClearAllHistory = () => {
+    if (window.confirm('Tem certeza que deseja limpar todo o histórico de buscas?')) {
+      searchHistoryManager.clearHistory();
+      setSearchHistory([]);
+    }
+  };
+
+  const getSearchStats = () => {
+    return searchHistoryManager.getSearchStats();
   };
 
   return (
@@ -243,6 +290,13 @@ const PhoneSearchPage: React.FC = () => {
                 <CreditCard size={16} className="mr-1 sm:mr-2 sm:w-5 sm:h-5" />
                 Pipeline de Vendas
               </button>
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 shadow-lg transform hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+              >
+                <History size={16} className="mr-1 sm:mr-2 sm:w-5 sm:h-5" />
+                Histórico ({searchHistory.length})
+              </button>
             </div>
           </div>
         </div>
@@ -256,6 +310,138 @@ const PhoneSearchPage: React.FC = () => {
             onCancel={handleFormClose}
             client={selectedClient}
           />
+        </div>
+      ) : showHistory ? (
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base sm:text-lg font-semibold text-white flex items-center">
+                <History className="mr-2" size={18} />
+                Histórico de Buscas ({searchHistory.length})
+              </h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleClearAllHistory}
+                  className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+                >
+                  Limpar Tudo
+                </button>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="p-2 text-white hover:bg-gray-600 rounded-lg"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Search Stats */}
+          {searchHistory.length > 0 && (
+            <div className="p-4 sm:p-6 bg-gray-50 border-b">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {(() => {
+                  const stats = getSearchStats();
+                  return (
+                    <>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-gray-900">{stats.totalSearches}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">Total de Buscas</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-green-600">{stats.successfulSearches}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">Encontrados</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-blue-600">{stats.successRate.toFixed(1)}%</div>
+                        <div className="text-xs sm:text-sm text-gray-500">Taxa de Sucesso</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-purple-600">{stats.totalDealsFound}</div>
+                        <div className="text-xs sm:text-sm text-gray-500">Negócios</div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+          
+          <div className="p-3 sm:p-6">
+            {searchHistory.length > 0 ? (
+              <div className="space-y-3 sm:space-y-4">
+                {searchHistory.map((entry) => (
+                  <div key={entry.id} className="bg-gray-50 rounded-lg p-3 sm:p-4 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Phone size={14} className="text-blue-500 flex-shrink-0" />
+                          <span className="font-medium text-gray-900 text-sm sm:text-base">{entry.phoneNumber}</span>
+                          {entry.clientFound ? (
+                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                              Encontrado
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                              Não encontrado
+                            </span>
+                          )}
+                        </div>
+                        
+                        {entry.clientName && (
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Users size={12} className="text-gray-400" />
+                            <span className="text-sm text-gray-600">{entry.clientName}</span>
+                          </div>
+                        )}
+                        
+                        {entry.dealsCount > 0 && (
+                          <div className="flex items-center space-x-2 mb-1">
+                            <CreditCard size={12} className="text-gray-400" />
+                            <span className="text-sm text-gray-600">{entry.dealsCount} negócio(s)</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center space-x-2">
+                          <Clock size={12} className="text-gray-400" />
+                          <span className="text-xs text-gray-500">
+                            {entry.searchDate.toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => {
+                            setSearchTerm(entry.phoneNumber);
+                            performSearch(entry.phoneNumber);
+                            setShowHistory(false);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Buscar novamente"
+                        >
+                          <Search size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteHistory(entry.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Remover do histórico"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <History size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma busca realizada</h3>
+                <p className="text-gray-500">Suas buscas por telefone aparecerão aqui</p>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <>
@@ -316,6 +502,101 @@ const PhoneSearchPage: React.FC = () => {
                               onClick={() => handleViewDetails(client)}
                               onDelete={handleDeleteClient}
                             />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Client Deals Results */}
+              {searchResults.clientDeals.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 px-4 sm:px-6 py-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-white flex items-center">
+                      <CreditCard className="mr-2" size={18} />
+                      Negócios do Cliente ({searchResults.clientDeals.length})
+                    </h3>
+                  </div>
+                  <div className="p-3 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                      {searchResults.clientDeals.map((deal: Deal) => {
+                        const client = clients.find(c => c.id === deal.clientId);
+                        const owner = users.find(u => u.id === deal.ownerId);
+                        const status = pipelineStatuses.find(s => s.id === deal.statusId);
+                        return (
+                          <div 
+                            key={deal.id} 
+                            className="bg-gradient-to-br from-white to-orange-50 p-4 sm:p-6 rounded-xl border border-orange-200 hover:shadow-lg transform hover:scale-105 transition-all duration-200 cursor-pointer"
+                            onClick={() => handleViewDeal(deal)}
+                          >
+                            <div className="flex items-start justify-between mb-4">
+                              <h4 className="font-semibold text-gray-900 text-base sm:text-lg truncate flex-1">{deal.title}</h4>
+                              <div 
+                                className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium text-white ml-2 flex-shrink-0"
+                                style={{ backgroundColor: status?.color || '#6B7280' }}
+                              >
+                                {status?.name || 'Status'}
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2 sm:space-y-3">
+                              <div className="flex items-center text-gray-600">
+                                <Users size={14} className="mr-2 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="text-sm truncate">{client?.name}</span>
+                              </div>
+                              
+                              <div className="flex items-center text-gray-600">
+                                <DollarSign size={14} className="mr-2 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="text-sm font-medium">
+                                  {new Intl.NumberFormat('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'BRL'
+                                  }).format(deal.value)}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center text-gray-600">
+                                <TrendingUp size={14} className="mr-2 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="text-sm">{(deal.probability * 100).toFixed(0)}% probabilidade</span>
+                              </div>
+                              
+                              {owner && (
+                                <div className="flex items-center text-gray-600">
+                                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-300 mr-2 flex items-center justify-center flex-shrink-0">
+                                    {owner.avatar ? (
+                                      <img src={owner.avatar} alt={owner.name} className="w-full h-full rounded-full" />
+                                    ) : (
+                                      <span className="text-xs font-medium text-white">
+                                        {owner.name.substring(0, 2).toUpperCase()}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-sm truncate">{owner.name}</span>
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center text-gray-600">
+                                <Calendar size={14} className="mr-2 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="text-xs">
+                                  Criado em {new Date(deal.createdAt).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-4 pt-4 border-t border-orange-200">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewDeal(deal);
+                                }}
+                                className="flex items-center justify-center w-full px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 text-sm font-medium"
+                              >
+                                <Eye size={14} className="mr-2" />
+                                Ver no Pipeline
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
@@ -399,7 +680,7 @@ const PhoneSearchPage: React.FC = () => {
               )}
 
               {/* No Results */}
-              {searchResults.clients.length === 0 && searchResults.deals.length === 0 && (
+              {searchResults.clients.length === 0 && searchResults.deals.length === 0 && searchResults.clientDeals.length === 0 && (
                 <div className="text-center py-12 sm:py-16">
                   <div className="mx-auto flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
                     <Search size={24} className="text-gray-400 sm:w-8 sm:h-8" />
@@ -461,12 +742,12 @@ const PhoneSearchPage: React.FC = () => {
                 
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl border border-purple-100 shadow-sm">
                   <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-full mx-auto mb-4">
-                    <Phone size={20} className="text-white sm:w-6 sm:h-6" />
+                    <History size={20} className="text-white sm:w-6 sm:h-6" />
                   </div>
                   <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-                    {clients.reduce((total, client) => total + client.phones.length, 0)}
+                    {searchHistory.length}
                   </h4>
-                  <p className="text-gray-600 text-sm sm:text-base">Telefones Cadastrados</p>
+                  <p className="text-gray-600 text-sm sm:text-base">Buscas Realizadas</p>
                 </div>
               </div>
             </div>
